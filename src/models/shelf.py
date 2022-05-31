@@ -3,8 +3,10 @@ Shelf model
 Shelf has a size and can hold a number of packages
 """
 
+import math
+
 class Shelf:
-    def __init__(self, size):
+    def __init__(self, size, weight_limit=math.inf):
         self.size = size
         self.used_size = 0
         self.packages = {}
