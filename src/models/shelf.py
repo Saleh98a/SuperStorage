@@ -18,12 +18,16 @@ class Shelf:
         self.item_quantities[package.name] = self.item_quantities.get(package.name, 0) + package.quantity
 
     def extract_order(self, item, quantity):
-        if quantity <= 0:
+        if quantity == 0:
+            return 0
+        if quantity < 0:
             raise Exception("Invalid order quantity")
         if self.item_quantities.get(item, 0) < quantity:
             raise Exception("Shelf doesn't have enough quantity")
 
-        self.item_quantities[item] = self.item_quantities[item] - quantity;
+        new_quantity = self.item_quantities[item] - quantity
+        self.item_quantities[item] = new_quantity
+        return new_quantity
 
     def can_put_package(self, package):
         return package.size() + self.used_size <= self.size
