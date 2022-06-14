@@ -6,10 +6,6 @@ from shelf import Shelf
 
 class Rack:
     def __init__(self, num_of_shelves, shelf_size):
-        self.shelves = [Shelf(shelf_size) for i in range(num_of_shelves)]
-
-    def add_shelf(self, shelf):
-        self.shelves.append(shelf)
-
-    def remove_shelf(self, shelf):
-        self.shelves.remove(shelf)
+        self.num_of_shelves = num_of_shelves
+        self.shelf_size = shelf_size
+        self.shelves = [Shelf(shelf_size) for _ in range(num_of_shelves)]

@@ -12,6 +12,7 @@ class Forklift(ABC):
 
 class SSForklift:
     def __init__(self, position, weight_limit, size_limit, vertical_coeff, horizontal_coeff):
+        super.__init__()
         self.position = position
         self.weight_limit = weight_limit
         self.size_limit = size_limit
