@@ -9,7 +9,7 @@ def insert_naive(storage, container):
             if storage.can_put_package_at(package, position):
                 storage.insert_package(package)
 
-def extract_naive(storage, container):
+def extract_naive(storage, order):
     pass
 
 def insert_knapsack(storage, container):
