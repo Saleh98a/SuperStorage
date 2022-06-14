@@ -12,3 +12,9 @@ class Container:
 
     def remove_package(self, package):
         self.packages.remove(package)
+
+    def size(self):
+        sum = 0
+        for package in self.packages:
+            sum += package.size()
+        return sum

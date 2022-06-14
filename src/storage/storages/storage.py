@@ -7,7 +7,7 @@ from abc import ABC, abstractmethod
 class Storage(ABC):
 
     @abstractmethod
-    def insert_package(self, forklift, container, position):
+    def insert_package(self, forklift, package, position):
         pass
 
     @abstractmethod
@@ -23,5 +23,13 @@ class Storage(ABC):
         pass
 
     @abstractmethod
-    def get_forklift_position(self, forklift, position):
+    def get_items_at(self, position):
+        pass
+
+    @abstractmethod
+    def get_item_quantity_at(self, item, position):
+        pass
+
+    @abstractmethod
+    def can_put_package_at(self, package, position):
         pass
