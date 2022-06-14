@@ -23,12 +23,15 @@ class SuperStorage(Storage):
     def insert_package(self, forklift, package, position=None):
         self.move_forklift(forklift, position)
         self.racks[position.row][position.col].shelves[position.shelf_num].put_package(package)
-        # save additional info
+        # save/update additional info
         self.items_map[package.name] = self.items_map.get(package.name, []).append(position)
 
-    def extract_item(self, forklift, item, quantity, position):
+    def extract_item(self, forklift, item, quantity, position=None):
         self.move_forklift(forklift, position)
-        self.racks[position.row][position.col].shelves[position.shelf_num].extract_order(item, quantity)
+        new_quantity = self.racks[position.row][position.col].shelves[position.shelf_num].extract_order(item, quantity)
+        # save/update additional info
+        if new_quantity == 0:
+            self.items_map[item] = self.items_map[item].remove(position)
 
     def calculate_forklift_cost(self, forklift, position):
         if forklift.position.row == position.row:
