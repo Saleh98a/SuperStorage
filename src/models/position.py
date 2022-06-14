@@ -16,3 +16,8 @@ class SSPosition(Position):
         self.row = row
         self.col = col
         self.shelf_num = shelf_num
+
+    def __eq__(self, other):
+        return self.row == other.row and self.col == other.col and self.shelf_num == other.shelf_num
+
+
