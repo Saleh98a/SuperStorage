@@ -1,9 +1,10 @@
 """
 Naive Storage Manager implementation
 """
-from storage_manager import StorageManager
+from src.storage.managers.storage_manager import StorageManager
 from src.storage.storage_utils import insert_naive, extract_naive
-from src.models.index import SSForklift
+from src.models.forklift import SSForklift
+
 
 class NaiveStorageManager(StorageManager):
 
@@ -16,3 +17,6 @@ class NaiveStorageManager(StorageManager):
 
     def extract_order(self, order):
         extract_naive(self.storage, self.forklift, order)
+
+    def print(self):
+        self.storage.print()

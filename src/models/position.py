@@ -5,10 +5,12 @@ Describe position inside the storage
 
 from abc import ABC, abstractmethod
 
+
 class Position(ABC):
     # empty class
     def __init__(self):
         pass
+
 
 class SSPosition(Position):
     def __init__(self, row, col, shelf_num):
