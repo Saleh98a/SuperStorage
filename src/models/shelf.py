@@ -31,15 +31,12 @@ class Shelf:
         return new_quantity
 
     def can_put_package(self, package):
-        # print("package size" + str(package.size()))
-        # print("used_size" + str(self.used_size))
-        # print("self size" + str(self.size))
         return (package.size() + self.used_size) <= self.size
 
     def print(self):
         if self.used_size == 0:
             return
-        print("Using", str(self.used_size), "out of", str(self.size), "Packages:", end="\t")
+        print("Using " + str(self.used_size) + " out of " + str(self.size) + " size units, Packages:", end="\t")
         for product in self.item_quantities:
             print(product.name, "of size", product.size, "quantity", self.item_quantities[product], end=", ")
         print("")

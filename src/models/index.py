@@ -2,11 +2,11 @@
 index file exporting all models
 """
 
-from product import Product
-from package import Package
-from container import Container
-from order import Order
-from shelf import Shelf
-from rack import Rack
-from forklift import SSForklift
-from position import SSPosition
+from src.models.product import Product
+from src.models.package import Package
+from src.models.container import Container
+from src.models.order import Order
+from src.models.shelf import Shelf
+from src.models.rack import Rack
+from src.models.forklift import SSForklift
+from src.models.position import SSPosition

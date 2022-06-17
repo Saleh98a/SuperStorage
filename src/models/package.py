@@ -10,3 +10,6 @@ class Package:
 
     def size(self):
         return self.quantity * self.product.size
+
+    def __str__(self) -> str:
+        return "Package: " + str(self.quantity) + " of " + str(self.product.name)

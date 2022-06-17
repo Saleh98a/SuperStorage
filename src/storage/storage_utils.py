@@ -4,7 +4,7 @@ Utils/Helper Function for Storage
 
 
 def insert_naive(storage, forklift, container):
-    positions_iter = iter(storage)  # todo fix iterator (goes out of range)
+    positions_iter = iter(storage)
     for package in container.packages:
         success = False
         for position in positions_iter:
@@ -13,8 +13,7 @@ def insert_naive(storage, forklift, container):
                 storage.insert_package(forklift, package, position)
                 break
         if not success:
-            print("Couldn't insert this particular package: " + package.product.name)
-            # todo do something else
+            raise Exception("Couldn't insert package: " + str(package))
 
 
 def extract_naive(storage, forklift, order):

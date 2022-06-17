@@ -20,6 +20,5 @@ if __name__ == '__main__':
 
     sim1.simulate(naive1)
     print_hi('success')
-    for s in s1 :
-        print(s.shelf_num)
+
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
