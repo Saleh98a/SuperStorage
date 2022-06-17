@@ -2,7 +2,8 @@
 Rack model (Rack is basically a list of shelves)
 """
 
-from shelf import Shelf
+from src.models.shelf import Shelf
+
 
 class Rack:
     def __init__(self, num_of_shelves, shelf_size):

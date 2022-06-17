@@ -11,7 +11,7 @@ class Storage(ABC):
         pass
 
     @abstractmethod
-    def extract_item(self, forklift, item, quantity, position):
+    def extract_product(self, forklift, product, quantity, position):
         pass
 
     @abstractmethod
@@ -32,4 +32,8 @@ class Storage(ABC):
 
     @abstractmethod
     def can_put_package_at(self, package, position):
+        pass
+
+    @abstractmethod
+    def print(self):
         pass

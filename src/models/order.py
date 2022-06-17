@@ -4,9 +4,11 @@ Order is basically a list of ordered packages
 """
 
 class Order:
-    def __init__(self, item_orders={}):
-        self.item_orders = item_orders
+    def __init__(self, product_orders={}):
+        self.item_orders = product_orders
         self.all_items_quantity = 0
+        for item in product_orders:
+            self.all_items_quantity += product_orders[item]
 
     def get_order(self, item):
         return self.item_orders.get(item, 0)
@@ -16,7 +18,7 @@ class Order:
         self.all_items_quantity = self.all_items_quantity + quantity
 
     def remove_from_order(self, item, quantity):
-        if quantity > self.item_orders.get((item, 0)):
+        if quantity > self.get_order(item):
             raise Exception("Order doesn't need this much quantity")
         self.item_orders[item] = self.item_orders.get(item, 0) - quantity
         self.all_items_quantity = self.all_items_quantity - quantity
