@@ -5,6 +5,7 @@ Shelf has a size and can hold a number of packages
 
 import math
 
+
 class Shelf:
     def __init__(self, size, weight_limit=math.inf):
         self.size = size
@@ -15,7 +16,7 @@ class Shelf:
         if not self.can_put_package(package):
             raise Exception("Package can't fit on this shelf")
         self.used_size += package.size()
-        self.item_quantities[package.name] = self.item_quantities.get(package.name, 0) + package.quantity
+        self.item_quantities[package.product] = self.item_quantities.get(package.product, 0) + package.quantity
 
     def extract_order(self, item, quantity):
         if quantity == 0:
@@ -30,4 +31,12 @@ class Shelf:
         return new_quantity
 
     def can_put_package(self, package):
-        return package.size() + self.used_size <= self.size
+        return (package.size() + self.used_size) <= self.size
+
+    def print(self):
+        if self.used_size == 0:
+            return
+        print("Using " + str(self.used_size) + " out of " + str(self.size) + " size units, Packages:", end="\t")
+        for product in self.item_quantities:
+            print(product.name, "of size", product.size, "quantity", self.item_quantities[product], end=", ")
+        print("")
