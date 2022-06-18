@@ -37,10 +37,13 @@ class SuperStorage(Storage):
 
     def extract_product(self, forklift, product, quantity, position=None):
         self.move_forklift(forklift, position)
-        new_quantity = self.racks[position.row][position.col].shelves[position.shelf_num].extract_order(product, quantity)
+        extracted_quantity = self.racks[position.row][position.col].shelves[position.shelf_num].extract_order(product, quantity)
         # save/update additional info
-        if new_quantity == 0:
+        if extracted_quantity <= quantity and not extracted_quantity == 0:
+            #need check !!!!!
+            print("yesss")
             self.items_map[product].remove(position)
+        return extracted_quantity
 
     def calculate_forklift_cost(self, forklift, position):
         if forklift.position.row == position.row:

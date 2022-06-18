@@ -18,16 +18,15 @@ def insert_naive(storage, forklift, container):
 
 def extract_naive(storage, forklift, order):
     positions_iter = iter(storage)
-    for position in positions_iter:
-        items_quantities = storage.get_items_at(position)
-        for product in order:
+    for product in order:
+        for position in positions_iter:
             ordered_quantity = order.get_order(product)
-            shelf_quantity = items_quantities.get(product, 0)
-            taken_quantity = min(ordered_quantity, shelf_quantity)
-            storage.extract_product(forklift, product, taken_quantity, position)
+            taken_quantity = storage.extract_product(forklift, product, ordered_quantity, position)
             order.remove_from_order(product, taken_quantity)
-            if order.empty():
-                return True
+            if taken_quantity == ordered_quantity:
+                break
+        if order.empty():
+            return True
     return False
 
 
