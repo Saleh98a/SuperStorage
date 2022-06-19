@@ -5,6 +5,8 @@ Container is basically a set of packages
 
 class Container:
     def __init__(self, packages=[]):
+        if not packages:
+            packages = []
         self.packages = packages
 
     def add_package(self, package):

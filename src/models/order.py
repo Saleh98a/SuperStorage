@@ -6,6 +6,8 @@ Order is basically a list of ordered packages
 class Order:
     def __init__(self, product_orders={}):
         self.item_orders = product_orders
+        if product_orders == {}:
+            self.item_orders = {}
         self.all_items_quantity = 0
         for item in product_orders:
             self.all_items_quantity += product_orders[item]

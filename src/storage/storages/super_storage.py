@@ -37,11 +37,15 @@ class SuperStorage(Storage):
 
     def extract_product(self, forklift, product, quantity, position=None):
         self.move_forklift(forklift, position)
-        extracted_quantity = self.racks[position.row][position.col].shelves[position.shelf_num].extract_order(product, quantity)
+        current_quantity = self.racks[position.row][position.col].shelves[position.shelf_num].get_quantity(product)
+        if current_quantity == 0:
+            return current_quantity
+        max_quant = min(quantity, current_quantity)
+        extracted_quantity = self.racks[position.row][position.col].shelves[position.shelf_num].extract_order(product, max_quant)
+        if extracted_quantity != max_quant:
+            raise Exception("something wrong with extracting , need to check ! , max quant is :- ",max_quant," extracted quantity is:-",extracted_quantity)
         # save/update additional info
         if extracted_quantity <= quantity and not extracted_quantity == 0:
-            #need check !!!!!
-            print("yesss")
             self.items_map[product].remove(position)
         return extracted_quantity
 
