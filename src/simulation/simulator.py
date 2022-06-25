@@ -29,7 +29,7 @@ class Simulator:
         package9 = Package(product1, 3)
 
         print("printing the packages :- ")
-        print("package 1 :- product is " , package1.product.name ,"quant is :-" , package1.quantity)
+        print("package 1 :- product is ", package1.product.name ,"quant is :-" , package1.quantity)
         print("package 2 :- product is ", package2.product.name, "quant is :-", package2.quantity)
         print("package 3 :- product is ", package3.product.name, "quant is :-", package3.quantity)
         print("package 4 :- product is ", package4.product.name, "quant is :-", package4.quantity)
@@ -85,14 +85,15 @@ class Simulator:
         storage_manager.print()
         ord1 = Order()
         ord1.add_to_order(product1, 19)
+        ord1.add_to_order(product3,5)
         storage_manager.extract_order(ord1)
 
         print("after extracting ord1")
         storage_manager.print()
 
-        ord2 = Order()
-        ord2.add_to_order(product3,5)
-        storage_manager.extract_order(ord2)
+        # ord2 = Order()
+        # ord2.add_to_order(product3,5)
+        # storage_manager.extract_order(ord2)
 
         print("after extracting ord2")
         storage_manager.print()

@@ -1,7 +1,7 @@
 """
 Utils/Helper Function for Storage
 """
-import copy
+from copy import copy
 
 from src.models.container import Container
 
@@ -23,21 +23,21 @@ def insert_naive(storage, forklift, container):
 
 def extract_naive(storage, forklift, order):
     positions_iter = iter(storage)
-    for product in order:
+    for product in order: # TODO: removing from order might cause us some problems
         for position in positions_iter:
             ordered_quantity = order.get_order(product)
-            taken_quantity = storage.extract_product(forklift, product, ordered_quantity, position)
-            order.remove_from_order(product, taken_quantity)
-            if taken_quantity == ordered_quantity:
+            current_quantity = storage.get_item_quantity_at(product, position)
+            quantity_to_extract = min(ordered_quantity, current_quantity)
+            extracted_quantity = storage.extract_product(forklift, product, quantity_to_extract, position)
+            order.remove_from_order(product, extracted_quantity)
+            if extracted_quantity == ordered_quantity:
                 break
-        if order.empty():
-            return True
-    return False
+    return order.empty()
 
 
 def insert_knapsack(storage, forklift, container):
     cont = Container()
-    cont.packages = copy.copy(container.packages)
+    cont.packages = copy(container.packages)
     positions_iter = iter(storage)
     for position in positions_iter:
         if cont.size() == 0:
@@ -48,14 +48,12 @@ def insert_knapsack(storage, forklift, container):
 def extract_modified(storage, forklift, order):
     pass
 
-
 def insert_optimized(storage, container):
     pass
 
-
 def knapsack_shelf(storage, forklift, container, shelf, position):
     free_size = shelf.size-shelf.used_size
-    memo = [Container() for i in range(free_size + 1)]
+    memo = [Container() for _ in range(free_size + 1)]
     for i in range(1, free_size+1):
         max_used = memo[i-1].size()
         like_previous = True
@@ -64,7 +62,7 @@ def knapsack_shelf(storage, forklift, container, shelf, position):
                 if package.size() + memo[i-package.size()].size() > max_used:
                     like_previous = False
                     max_used = package.size() + memo[i-package.size()].size()
-                    memo[i].packages = copy.copy(memo[i-package.size()].packages)
+                    memo[i].packages = copy(memo[i-package.size()].packages)
                     memo[i].add_package(package)
         if like_previous:
             memo[i] = memo[i-1]
