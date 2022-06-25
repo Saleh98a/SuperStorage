@@ -85,7 +85,7 @@ class Simulator:
         storage_manager.print()
         ord1 = Order()
         ord1.add_to_order(product1, 19)
-        ord1.add_to_order(product3,5)
+        ord1.add_to_order(product3, 5)
         storage_manager.extract_order(ord1)
 
         print("after extracting ord1")
