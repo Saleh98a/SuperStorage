@@ -4,11 +4,13 @@ Order is basically a list of ordered packages
 """
 
 class Order:
-    def __init__(self, product_orders={}):
+    def __init__(self, product_orders=None):
         self.item_orders = product_orders
+        if product_orders is None:
+            self.item_orders = {}
         self.all_items_quantity = 0
-        for item in product_orders:
-            self.all_items_quantity += product_orders[item]
+        for item in self.item_orders:
+            self.all_items_quantity += self.item_orders[item]
 
     def get_order(self, item):
         return self.item_orders.get(item, 0)
