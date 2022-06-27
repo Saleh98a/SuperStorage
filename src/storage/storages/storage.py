@@ -4,6 +4,7 @@ Storage class/interface
 
 from abc import ABC, abstractmethod
 
+
 class Storage(ABC):
 
     @abstractmethod
@@ -32,6 +33,10 @@ class Storage(ABC):
 
     @abstractmethod
     def can_put_package_at(self, package, position):
+        pass
+
+    @abstractmethod
+    def get_last_used_shelf(self):
         pass
 
     @abstractmethod

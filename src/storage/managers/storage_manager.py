@@ -4,6 +4,7 @@ Storage Manager class/interface
 
 from abc import ABC, abstractmethod
 
+
 class StorageManager(ABC):
 
     def __init__(self, storage):
@@ -16,3 +17,6 @@ class StorageManager(ABC):
     @abstractmethod
     def extract_order(self, order):
         pass
+
+    def get_space(self):
+        return self.storage.get_last_used_shelf()

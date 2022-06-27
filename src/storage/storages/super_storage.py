@@ -11,7 +11,7 @@ import math
 
 
 class SuperStorage(Storage):
-    def __init__(self, rows=20, racks_per_row=10, shelves_per_rack=10, weight_per_rack=math.inf, shelf_size=50):
+    def __init__(self, rows=20, racks_per_row=10, shelves_per_rack=10, weight_per_rack=math.inf, shelf_size=200):
         super().__init__()
         self.rows = rows
         self.racks_per_row = racks_per_row
@@ -29,8 +29,11 @@ class SuperStorage(Storage):
     def insert_package(self, forklift, package, position=None):
         self.move_forklift(forklift, position)
         self.racks[position.row][position.col].shelves[position.shelf_num].put_package(package)
+
         # save/update additional info
-        #self.items_map[package.product.name] = self.items_map.get(package.product.name, default=[]).append(position)
+        # self.items_map[package.product.name] = self.items_map.get(package.product.name, default=[]).append(position)
+        self.racks[position.row][position.col].used_size += package.size()
+
         if package.product not in self.items_map:
             self.items_map[package.product] = []
         self.items_map[package.product].append(position)
@@ -41,8 +44,11 @@ class SuperStorage(Storage):
         # if current_quantity == 0:
         #     return current_quantity
         # max_quant = min(quantity, current_quantity)
-        extracted_quantity = self.racks[position.row][position.col].shelves[position.shelf_num].extract_order(product, quantity)
+        extracted_quantity = self.racks[position.row][position.col].shelves[position.shelf_num].extract_order(product,
+                                                                                                              quantity)
         # save/update additional info
+        self.racks[position.row][position.col].used_size -= extracted_quantity * product.size
+
         if extracted_quantity <= quantity and not extracted_quantity == 0:
             self.items_map[product].remove(position)
         return extracted_quantity
@@ -70,6 +76,17 @@ class SuperStorage(Storage):
 
     def can_put_package_at(self, package, position):
         return self.racks[position.row][position.col].shelves[position.shelf_num].can_put_package(package)
+
+    def get_last_used_shelf(self):
+        maximum_rack = 0
+        i = 0
+        for row in range(self.rows):
+            for col in range(self.racks_per_row):
+                for shelf in self.racks[row][col].shelves:
+                    i += 1
+                    if shelf.is_used():
+                        maximum_rack = i
+        return maximum_rack
 
     def __iter__(self):
         self.iter_pos = SSPosition(0, 0, 0)

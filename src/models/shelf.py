@@ -18,7 +18,7 @@ class Shelf:
         self.used_size += package.size()
         self.item_quantities[package.product] = self.item_quantities.get(package.product, 0) + package.quantity
 
-    def extract_order(self, item, quantity): # we return the quantity that we extracted from this shelf
+    def extract_order(self, item, quantity):  # we return the quantity that we extracted from this shelf
         if quantity == 0:
             return 0
         if quantity < 0:
@@ -31,12 +31,15 @@ class Shelf:
         self.item_quantities[item] = current_quantity - quantity
         if current_quantity - quantity == 0:
             self.item_quantities.pop(item)
-        extracted_quantity = min(current_quantity,quantity)
+        extracted_quantity = min(current_quantity, quantity)
         self.used_size -= (extracted_quantity * item.size)
         return extracted_quantity
 
-    def get_quantity(self , item):
+    def get_quantity(self, item):
         return self.item_quantities.get(item, 0)
+
+    def is_used(self):
+        return self.used_size != 0
 
     def can_put_package(self, package):
         return (package.size() + self.used_size) <= self.size
