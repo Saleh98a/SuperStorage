@@ -36,7 +36,7 @@ class Storage(ABC):
         pass
 
     @abstractmethod
-    def get_last_used_shelf(self):
+    def get_fragmentation(self):
         pass
 
     @abstractmethod

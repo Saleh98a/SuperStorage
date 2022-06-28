@@ -13,6 +13,7 @@ class NaiveStorageManager(StorageManager):
         self.forklift = SSForklift()
 
     def insert_container(self, container):
+        self.storage.move_forklift(self.forklift)
         insert_naive(self.storage, self.forklift, container)
 
     def extract_order(self, order):

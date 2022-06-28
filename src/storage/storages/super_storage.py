@@ -22,6 +22,7 @@ class SuperStorage(Storage):
         self.racks = [[Rack(shelves_per_rack, shelf_size) for _ in range(racks_per_row)] for _ in range(rows)]
         # additional info
         self.items_map = {}
+        self.total_cost = 0
 
     def get_shelf(self, position):
         return self.racks[position.row][position.col].shelves[position.shelf_num]
@@ -54,17 +55,21 @@ class SuperStorage(Storage):
         return extracted_quantity
 
     def calculate_forklift_cost(self, forklift, position):
+        # do not forget to multiply with the horizontal\vertical coef
         if forklift.position.row == position.row:
-            return abs(forklift.position.col - position.col)
-        return abs(forklift.position.row - position.row) + min(forklift.position.col + position.col,
-                                                               2 * self.racks_per_row - forklift.position.col - position.col)
+            return abs(forklift.position.col - position.col) + abs(position.shelf_num - forklift.position.shelf_num)
+        return abs(forklift.position.row - position.row) + \
+               abs(position.shelf_num - forklift.position.shelf_num) + \
+               min(forklift.position.col + position.col,
+                   2 * self.racks_per_row - forklift.position.col - position.col)
 
-    def move_forklift(self, forklift, position):
+    def move_forklift(self, forklift, position=SSPosition(0, 0, 0)):
         # Check if forklift is SSForklift and position is SSPosition
         if not isinstance(forklift, SSForklift):
             raise Exception("incompatible arguments 1")
         if not isinstance(position, SSPosition):
             raise Exception("incompatible arguments 2")
+        self.total_cost += self.calculate_forklift_cost(forklift, position)
         forklift.position = position
 
     def get_items_at(self, position):
@@ -77,16 +82,18 @@ class SuperStorage(Storage):
     def can_put_package_at(self, package, position):
         return self.racks[position.row][position.col].shelves[position.shelf_num].can_put_package(package)
 
-    def get_last_used_shelf(self):
-        maximum_rack = 0
+    def get_fragmentation(self):
+        maximum_shelf = 0
         i = 0
+        wasted_space = 0
         for row in range(self.rows):
             for col in range(self.racks_per_row):
                 for shelf in self.racks[row][col].shelves:
                     i += 1
                     if shelf.is_used():
-                        maximum_rack = i
-        return maximum_rack
+                        maximum_shelf = i
+                        wasted_space += (shelf.size - shelf.used_size)*100/shelf.size
+        return wasted_space/maximum_shelf
 
     def __iter__(self):
         self.iter_pos = SSPosition(0, 0, 0)

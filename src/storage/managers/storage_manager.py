@@ -19,4 +19,4 @@ class StorageManager(ABC):
         pass
 
     def get_space(self):
-        return self.storage.get_last_used_shelf()
+        return self.storage.get_fragmentation()

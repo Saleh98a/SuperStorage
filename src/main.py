@@ -28,5 +28,4 @@ if __name__ == '__main__':
     sim2.simulate()#knapsack1)
 
     print_hi('success')
-
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
