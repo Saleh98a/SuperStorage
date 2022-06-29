@@ -2,7 +2,7 @@
 Our Storage Implementation
 """
 
-from src.storage.storages.storage import Storage
+from src.storage.storages.storage import Storage, StorageSettings
 # from src.models.index import Rack, SSForklift, SSPosition
 from src.models.rack import Rack
 from src.models.forklift import SSForklift
@@ -11,13 +11,17 @@ import math
 
 
 class SuperStorage(Storage):
-    def __init__(self, rows=20, racks_per_row=10, shelves_per_rack=10, shelf_size=200):
+    def __init__(self, storage_settings=StorageSettings()):
         super().__init__()
-        self.rows = rows
-        self.racks_per_row = racks_per_row
-        self.num_of_racks = rows * racks_per_row
-        self.shelves_per_rack = shelves_per_rack
-        self.rack_size = shelf_size
+        self.storage_settings = storage_settings
+
+        rows = storage_settings.rows
+        racks_per_row = storage_settings.racks_per_row
+        shelves_per_rack = storage_settings.shelves_per_rack
+        shelf_size = storage_settings.shelf_size
+
+        self.rack_size = shelf_size * shelves_per_rack
+        self.num_of_racks = storage_settings.rows * storage_settings.racks_per_row
         self.racks = [[Rack(shelves_per_rack, shelf_size) for _ in range(racks_per_row)] for _ in range(rows)]
         # additional info
         self.items_map = {}
@@ -60,7 +64,7 @@ class SuperStorage(Storage):
         return abs(forklift.position.row - position.row) + \
                abs(position.shelf_num - forklift.position.shelf_num) + \
                min(forklift.position.col + position.col,
-                   2 * self.racks_per_row - forklift.position.col - position.col)
+                   2 * self.storage_settings.racks_per_row - forklift.position.col - position.col)
 
     def move_forklift(self, forklift, position=SSPosition(0, 0, 0)):
         # Check if forklift is SSForklift and position is SSPosition
@@ -85,8 +89,8 @@ class SuperStorage(Storage):
         maximum_shelf = 0
         i = 0
         wasted_space = 0
-        for row in range(self.rows):
-            for col in range(self.racks_per_row):
+        for row in range(self.storage_settings.rows):
+            for col in range(self.storage_settings.racks_per_row):
                 for shelf in self.racks[row][col].shelves:
                     i += 1
                     if shelf.is_used():
@@ -100,9 +104,9 @@ class SuperStorage(Storage):
 
     def __next__(self):
         temp = SSPosition(self.iter_pos.row, self.iter_pos.col, self.iter_pos.shelf_num)
-        if self.iter_pos.shelf_num + 1 < self.shelves_per_rack:
+        if self.iter_pos.shelf_num + 1 < self.storage_settings.shelves_per_rack:
             self.iter_pos.shelf_num += 1
-        elif self.iter_pos.col + 1 < self.racks_per_row:
+        elif self.iter_pos.col + 1 < self.storage_settings.racks_per_row:
             self.iter_pos.shelf_num = 0
             self.iter_pos.col += 1
         else:
@@ -111,7 +115,7 @@ class SuperStorage(Storage):
             self.iter_pos.col = 0
             self.iter_pos.row += 1
 
-        if temp.row == self.rows:
+        if temp.row == self.storage_settings.rows:
             raise StopIteration
 
         return temp

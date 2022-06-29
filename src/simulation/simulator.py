@@ -133,7 +133,8 @@ def initialize_products():
 
 
 class Simulator:
-    def __init__(self):
+    def __init__(self, simulation_settings):
+        self.simulation_setting = simulation_settings
         self.graphs = {"Fragmentation": [],
                        "Cost": [],
                        "Runtime": []}
@@ -141,7 +142,7 @@ class Simulator:
         self.curr_cost = 0
         self.curr_runtime = 0
 
-    def simulate(self, storage_manager):#, simulation_settings):
+    def simulate(self):#, simulation_settings):
         products = initialize_products()
         repetitions = 100
 
