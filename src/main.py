@@ -8,6 +8,7 @@ from src.storage.managers.knapsack_storage_manager import KnapsackStorageManager
 from storage.managers.naive_storage_manager import NaiveStorageManager
 from storage.storages.super_storage import SuperStorage
 
+
 def print_hi(name):
     # Use a breakpoint in the code line below to debug your script.
     print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
@@ -27,5 +28,4 @@ if __name__ == '__main__':
     sim2.simulate(knapsack1)
 
     print_hi('success')
-
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
