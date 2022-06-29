@@ -10,6 +10,7 @@ class KnapsackStorageManager(StorageManager):
         self.forklift = SSForklift()
 
     def insert_container(self, container):
+        self.storage.move_forklift(self.forklift)
         insert_knapsack(self.storage, self.forklift, container)
 
     def extract_order(self, order):

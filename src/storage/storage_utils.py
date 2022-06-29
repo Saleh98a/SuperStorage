@@ -7,8 +7,8 @@ from src.models.container import Container
 
 
 def insert_naive(storage, forklift, container):
-    i = 1
-    print("new contaner")
+    #i = 1
+    #print("new container")
     for package in container.packages:
         success = False
         positions_iter = iter(storage)

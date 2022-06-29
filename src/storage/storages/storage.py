@@ -4,6 +4,15 @@ Storage class/interface
 
 from abc import ABC, abstractmethod
 
+
+class StorageSettings:
+    def __init__(self, rows=20, racks_per_row=10, shelves_per_rack=10, shelf_size=200):
+        self.rows = rows
+        self.racks_per_row = racks_per_row
+        self.shelves_per_rack = shelves_per_rack
+        self.shelf_size = shelf_size
+
+
 class Storage(ABC):
 
     @abstractmethod
@@ -32,6 +41,10 @@ class Storage(ABC):
 
     @abstractmethod
     def can_put_package_at(self, package, position):
+        pass
+
+    @abstractmethod
+    def get_fragmentation(self):
         pass
 
     @abstractmethod
