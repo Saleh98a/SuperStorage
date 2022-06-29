@@ -133,33 +133,26 @@ def initialize_products():
 
 
 class Simulator:
+    def __init__(self):
+        self.graphs = {"Fragmentation": [],
+                       "Cost": [],
+                       "Runtime": []}
+        self.curr_fragmentation = 0
+        self.curr_cost = 0
+        self.curr_runtime = 0
 
-    @staticmethod
-    def simulate():  # storage_manager):  # , simulation_settings):
+    def simulate(self, storage_manager):#, simulation_settings):
         products = initialize_products()
         repetitions = 100
-        used_spaces_naive = []
-        used_spaces_knap = []
-        total_costs_naive = []
-        total_costs_knap = []
-        total_times_naive = []
-        total_times_knap = []
-        # plot_graph([1,2,3], [[1,5,2],[2,2,7]], 'stam', 'stam', 'stam')
-        x_axis = range(1, 40, 2)
+
+        x_axis = range(1, 5, 2)
         for containers_num in x_axis:  # need to get from simulation settings
-            used_space_naive = 0
-            used_space_knap = 0
-            total_cost_naive = 0
-            total_cost_knap = 0
-            total_time_naive = 0
-            total_time_knap = 0
-            # print("Doing 100 repetitions, curr space:", storage_manager.get_space())
+            self.curr_cost = 0
+            self.curr_runtime = 0
+            self.curr_fragmentation = 0
             print("Simulating containers number:", containers_num)
-            for repetition in range(10):  # need to get from simulation settings
-                s1 = SuperStorage()
-                s2 = SuperStorage()
-                naive_storage_manager = NaiveStorageManager(s1)
-                knap_storage_manager = KnapsackStorageManager(s2)
+            for repetition in range(50):  # need to get from simulation settings
+                storage_manager.reset_storage()
                 for container in range(containers_num):
                     packages = []
                     packages_num = 40  # need to get from simulation settings
@@ -168,45 +161,55 @@ class Simulator:
                         product = products[randint(0, 99)]
                         quantity = randint(1, shelf_size // product.size)
                         p = Package(product, quantity)
+                        """
+                        Sample:
+                        get_sample => normal(rand(0,100),rand(0,100))
+                        products[1000] => int
+                        quantity[1000] => int
+                        Compute:
+                        Total quantity (or size?) of each product
+                        Divided by
+                        Total quantity (or size?)
+                        => Frequency (Percentage)
+                        
+                        
+                        10*50 => 500 size  iphone 10%, 50 iphone
+                        frequency => learned
+                        first_rack
+                        orders[1000]
+                        """
                         packages.append(p)
                     c = Container(packages)
                     time1 = default_timer()
-                    naive_storage_manager.insert_container(c)
+                    storage_manager.insert_container(c)
                     time2 = default_timer()
-                    total_time_naive += time2 - time1
-                    knap_storage_manager.insert_container(c)
-                    time3 = default_timer()
-                    total_time_knap += time3 - time2
-                # print("repetition number", repetition, "of size", storage_manager.get_space())
-                used_space_naive += naive_storage_manager.get_space()
-                used_space_knap += knap_storage_manager.get_space()
-                total_cost_naive += s1.total_cost / repetitions
-                total_cost_knap += s2.total_cost / repetitions
+                    self.curr_runtime += (time2 - time1) / repetitions
+                self.curr_fragmentation += storage_manager.get_fragmentation()
+                self.curr_cost += storage_manager.get_total_cost() / repetitions
             # print("Finished repetitions with used space:", used_space)
             # need to get total_cost and space( and time later)
             # getting space:
-            used_spaces_naive.append(used_space_naive / repetitions)
-            used_spaces_knap.append(used_space_knap / repetitions)
-            total_costs_naive.append(total_cost_naive)
-            total_costs_knap.append(total_cost_knap)
-            total_times_naive.append(total_time_naive / repetitions)
-            total_times_knap.append(total_time_knap / repetitions)
+            self.graphs["Fragmentation"].append(self.curr_fragmentation / repetitions)
+            self.graphs["Cost"].append(self.curr_cost)
+            self.graphs["Runtime"].append(self.curr_runtime)
 
-        plot_graph(list(x_axis), [used_spaces_naive, used_spaces_knap], ['naive', 'knap'], 'containers',
+        plot_graph(list(x_axis), self.graphs['Fragmentation'], 'Fragmentation', 'containers',
                    'Fragmentation Percentage', 'Fragmentation Graph')
-        plot_graph(list(x_axis), [total_costs_naive, total_costs_knap], ['naive', 'knap'], 'containers',
-                   'Total Cost', 'Cost Graph')
-        plot_graph(list(x_axis), [total_times_naive, total_times_knap], ['naive', 'knap'], 'containers',
-                   'Runtime (seconds)', 'Runtime Graph')
+        plot_graph(list(x_axis), self.graphs['Cost'], 'Cost', 'containers',
+                   'Cost', 'Cost')
+        plot_graph(list(x_axis), self.graphs['Runtime'], 'Runtime', 'containers',
+                   'Runtime (sec)', 'Runtime')
+        # plot_graph(list(x_axis), [used_spaces_naive, used_spaces_knap], ['naive', 'knap'], 'containers',
+        #            'Fragmentation Percentage', 'Fragmentation Graph')
+        # plot_graph(list(x_axis), [total_costs_naive, total_costs_knap], ['naive', 'knap'], 'containers',
+        #            'Total Cost', 'Cost Graph')
+        # plot_graph(list(x_axis), [total_times_naive, total_times_knap], ['naive', 'knap'], 'containers',
+        #            'Runtime (seconds)', 'Runtime Graph')
 
 
-def plot_graph(x_axis, y_axis_list, y_names_list, x_label, y_label, title):
-    # plotting the points
-    for y_axis, name in zip(y_axis_list, y_names_list):
-        plt.plot(x_axis, y_axis, label=name)
-    # plt.plot(x_axis, [1,5,5])
-
-    # naming the x-axis
+def plot_graph(x_axis, y_axis, name, x_label, y_label, title):
+    plt.plot(x_axis, y_axis, label=name)
+    #naming the x-axis
     plt.xlabel(x_label)
     # naming the y-axis
     plt.ylabel(y_label)
@@ -217,3 +220,20 @@ def plot_graph(x_axis, y_axis_list, y_names_list, x_label, y_label, title):
     plt.legend()
     # function to show the plot
     plt.show()
+
+# def plot_graph(x_axis, y_axis_list, y_names_list, x_label, y_label, title):
+#     # plotting the points
+#     for y_axis, name in zip(y_axis_list, y_names_list):
+#         plt.plot(x_axis, y_axis, label=name)
+#
+#     # naming the x-axis
+#     plt.xlabel(x_label)
+#     # naming the y-axis
+#     plt.ylabel(y_label)
+#
+#     # giving a title to my graph
+#     plt.title(title)
+#
+#     plt.legend()
+#     # function to show the plot
+#     plt.show()

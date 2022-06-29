@@ -11,13 +11,12 @@ import math
 
 
 class SuperStorage(Storage):
-    def __init__(self, rows=20, racks_per_row=10, shelves_per_rack=10, weight_per_rack=math.inf, shelf_size=200):
+    def __init__(self, rows=20, racks_per_row=10, shelves_per_rack=10, shelf_size=200):
         super().__init__()
         self.rows = rows
         self.racks_per_row = racks_per_row
         self.num_of_racks = rows * racks_per_row
         self.shelves_per_rack = shelves_per_rack
-        self.weight_per_rack = weight_per_rack
         self.rack_size = shelf_size
         self.racks = [[Rack(shelves_per_rack, shelf_size) for _ in range(racks_per_row)] for _ in range(rows)]
         # additional info
@@ -107,6 +106,7 @@ class SuperStorage(Storage):
             self.iter_pos.shelf_num = 0
             self.iter_pos.col += 1
         else:
+            # TODO change so that we continue from col and just change row
             self.iter_pos.shelf_num = 0
             self.iter_pos.col = 0
             self.iter_pos.row += 1

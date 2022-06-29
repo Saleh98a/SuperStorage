@@ -21,3 +21,8 @@ class SimulationSettings:
         self.extract_settings = extract_settings
         self.interlapping = interlapping
         self.operation_order = operation_order
+
+""" 
+what parameters we need ?!
+    1. 
+"""
