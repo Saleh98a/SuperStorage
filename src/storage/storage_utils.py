@@ -4,6 +4,55 @@ Utils/Helper Function for Storage
 from copy import copy
 from src.models.index import Container, SSPosition
 
+
+def get_distance(pos1, pos2):
+    return abs(pos1.row-pos2.row) + abs(pos1.col-pos2.col) + abs(pos1.shelf_num-pos2.shelf_num)
+
+
+def add_position(current_path, new_pos):
+    length = len(current_path)
+    if length == 0:
+        return [new_pos]
+    elif length == 1:
+        current_path.append(new_pos)
+        return current_path
+    else:
+        min_cost = get_distance(current_path[length-1], new_pos)
+        min_cost += get_distance(new_pos, current_path[0])
+        min_cost -= get_distance(current_path[length-1], current_path[0])
+        min_index = length-1
+        for i in range(length-1):
+            added_cost = get_distance(current_path[i], new_pos) + get_distance(new_pos, current_path[i+1])
+            added_cost -= get_distance(current_path[i], current_path[i+1])
+            if added_cost < min_cost:
+                min_cost = added_cost
+                min_index = i
+        first_half = current_path[:min_index+1]
+        second_half = current_path[min_index+1:]
+        new_path = first_half + [new_pos] + second_half
+        return new_path
+
+
+def print_path(path):
+    for pos in path:
+        print("col= ", pos.col, "row=", pos.row, "height=", pos.height)
+
+
+def find_optimized_path(positions):
+    shortest_path = []
+    for pos in positions:
+        shortest_path = add_position(shortest_path, pos)
+    return shortest_path
+
+
+def get_path_cost(path):
+    length = len(path)
+    cost = get_distance(path[length-1], path[0])
+    for i in range(length-1):
+        cost += get_distance(path[i], path[i+1])
+    return cost
+
+
 def insert_naive(storage, forklift, container):
     #i = 1
     #print("new container")
@@ -46,8 +95,46 @@ def insert_knapsack(storage, forklift, container):
             storage.insert_package(forklift, package, position)
     return False
 
-def extract_modified(storage, forklift, order):
-    pass
+
+def get_product_positions(product, quantity, storage_manager):
+    # gets product and required amount and returns list of (position, quantity) where to get this quantity from storage
+    storage_quantity = 0
+    positions_quantity = []
+    for sector in storage_manager.sectors:
+        for position in sector:
+            if storage_quantity >= quantity:
+                break
+            current_quantity = storage_manager.storage.get_item_quantity_at(product, position)
+            if current_quantity > 0 :
+                storage_quantity += current_quantity
+                positions_quantity.append((position, current_quantity))
+
+    if storage_quantity < quantity:
+        raise Exception("not all the order are in the sotrage,")
+
+    while positions_quantity[0][0] <= (storage_quantity-quantity):
+        storage_quantity -= positions_quantity[0][0]
+        positions_quantity.pop(0)
+
+    positions_quantity[0][0] -= (storage_quantity-quantity)
+    return positions_quantity
+
+
+def extract_optimized(storage_manager, forklift, order):
+    position_actions = {}
+    for product in order.item_orders:
+        positions_quantity = get_product_positions(product, order.item_orders[product], storage_manager)
+        for (position, quantity) in positions_quantity:
+            if position in position_actions.keys():
+                position_actions[position].append((product, quantity))
+            else:
+                position_actions[position] = [(product, quantity)]
+    positions = list(position_actions.keys())
+    path = find_optimized_path(positions)
+    for position in path:
+        for (product, quantity) in position_actions[position]:
+            storage_manager.storage.extract_product(forklift, product, quantity, position)
+
 
 def insert_optimized(storage, forklift, container):
     # default optimization settings
