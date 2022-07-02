@@ -4,12 +4,8 @@ setting configurations of a given simulation
 """
 
 from enum import Enum
+from src.storage.storages.storage_settings import StorageSettings
 
-""""
-
-*****************************
-WE DON'T NEED THIS SHIT !!!!!
-*****************************
 
 class InsertAlgorithm(Enum):
     NAIVE = 1
@@ -19,17 +15,24 @@ class InsertAlgorithm(Enum):
 class ExtractAlgorithm(Enum):
     NAIVE = 1
 
-"""
 
-
-class SimulationSettings:
-    def __init__(self, storage_settings, insert_algo, extract_algo, insertion_only, interlapping):
-        self.storage_settings = storage_settings
-        self.insert = insert_algo
-        self.extract = extract_algo
-        self.insertion_only = insertion_only
-        self.interlapping = interlapping
-
+def __init__(self,
+             insert_algo=InsertAlgorithm.NAIVE,
+             extract_algo=ExtractAlgorithm.NAIVE,
+             storage_settings=StorageSettings(),
+             insertion_only=True,
+             interlapping=False,
+             repetitions_num=20,
+             containers_num=100,
+             packages_per_container=40):
+    self.storage_settings = storage_settings
+    self.insert = insert_algo
+    self.extract = extract_algo
+    self.insertion_only = insertion_only
+    self.interlapping = interlapping
+    self.repetitions_num = repetitions_num
+    self.containers_num = containers_num
+    self.packages_per_container = packages_per_container
 
 """
 what parameters we need ?!
