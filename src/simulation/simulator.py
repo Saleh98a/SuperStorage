@@ -5,7 +5,6 @@ Runs a storage environment simulation
 from datetime import time
 from timeit import default_timer
 
-
 from random import randint
 
 from src.models.container import Container
@@ -15,9 +14,9 @@ from src.models.product import Product
 
 import matplotlib.pyplot as plt
 
-from src.storage.managers.knapsack_storage_manager import KnapsackStorageManager
-from src.storage.managers.naive_storage_manager import NaiveStorageManager
+from src.storage.managers.storage_manager import StorageManager
 from src.storage.storages.super_storage import SuperStorage
+from src.simulation.simulation_settings import SimulationSettings
 
 
 def initialize_products():
@@ -127,90 +126,110 @@ def initialize_products():
     products = []
     i = 0
     for name in product_names:
-        products.append(Product(i, name, 0, randint(15, 40), 'cat'))
+        products.append(Product(i, name, 0, randint(15, 40), 'cat'))  # TODO: change
         i += 1
     return products
 
 
+def initialize_containers(products, containers_num, packages_num_per_container, shelf_size):
+    containers = []
+    for container in range(containers_num):
+        packages = []
+        for package in range(packages_num_per_container):
+            product = products[randint(0, 99)]
+            quantity = randint(1, shelf_size // product.size)
+            p = Package(product, quantity)
+            packages.append(p)
+        containers.append(Container(packages))
+    return containers
+
+
 class Simulator:
-    def __init__(self, simulation_settings):
-        self.simulation_setting = simulation_settings
-        self.graphs = {"Fragmentation": [],
-                       "Cost": [],
-                       "Runtime": []}
+    def __init__(self, simulation_settings=SimulationSettings()):
+        self.simulation_settings = simulation_settings
+        self.graphs = {"Fragmentation": [0 for _ in range(0, 100)],
+                       "Cost": [0 for _ in range(0, 100)],
+                       "Runtime": [0 for _ in range(0, 100)]}
+        self.curr_fragmentation = 0
+        self.curr_cost = 0
+        self.curr_runtime = 0
+        self.storage_manager = StorageManager(SuperStorage(),  # TODO: change, maybe take it from simulation settings
+                                              simulation_settings.insert,
+                                              simulation_settings.extract)
+        self.repetitions_num = self.simulation_settings.repetitions_num
+
+    def reset_costs(self):
         self.curr_fragmentation = 0
         self.curr_cost = 0
         self.curr_runtime = 0
 
-    def simulate(self):#, simulation_settings):
+    def print(self):  # TODO: maybe print simulation settings and not simulator
+        print("Simulating a storage:")
+        print("Dimensions are:")
+        print("     Rows:", self.simulation_settings.storage_settings.rows)
+        print("     Racks Per Row:", self.simulation_settings.storage_settings.rows)
+        print("     Shelves Per Rack:", self.simulation_settings.storage_settings.shelves_per_rack)
+        print("     Shelf Size:", self.simulation_settings.storage_settings.shelf_size)
+        print("Repetitions Num:", self.simulation_settings.repetitions_num)
+        print("Containers Num:", self.simulation_settings.containers_num)
+        print("Packages Per Container:", self.simulation_settings.packages_per_container)
+
+    def simulate(self):
         products = initialize_products()
-        repetitions = 100
+        containers = initialize_containers(products,
+                                           self.simulation_settings.containers_num,
+                                           self.simulation_settings.packages_per_container,
+                                           self.simulation_settings.storage_settings.shelf_size)
+        # Print data
+        self.print()
 
-        x_axis = range(1, 5, 2)
-        for containers_num in x_axis:  # need to get from simulation settings
-            self.curr_cost = 0
-            self.curr_runtime = 0
-            self.curr_fragmentation = 0
-            print("Simulating containers number:", containers_num)
-            for repetition in range(50):  # need to get from simulation settings
-                storage_manager.reset_storage()
-                for container in range(containers_num):
-                    packages = []
-                    packages_num = 40  # need to get from simulation settings
-                    for package in range(packages_num):
-                        shelf_size = 50  # need to get from simulation settings
-                        product = products[randint(0, 99)]
-                        quantity = randint(1, shelf_size // product.size)
-                        p = Package(product, quantity)
-                        """
-                        Sample:
-                        get_sample => normal(rand(0,100),rand(0,100))
-                        products[1000] => int
-                        quantity[1000] => int
-                        Compute:
-                        Total quantity (or size?) of each product
-                        Divided by
-                        Total quantity (or size?)
-                        => Frequency (Percentage)
-                        
-                        
-                        10*50 => 500 size  iphone 10%, 50 iphone
-                        frequency => learned
-                        first_rack
-                        orders[1000]
-                        """
-                        packages.append(p)
-                    c = Container(packages)
-                    time1 = default_timer()
-                    storage_manager.insert_container(c)
-                    time2 = default_timer()
-                    self.curr_runtime += (time2 - time1) / repetitions
-                self.curr_fragmentation += storage_manager.get_fragmentation()
-                self.curr_cost += storage_manager.get_total_cost() / repetitions
-            # print("Finished repetitions with used space:", used_space)
-            # need to get total_cost and space( and time later)
-            # getting space:
-            self.graphs["Fragmentation"].append(self.curr_fragmentation / repetitions)
-            self.graphs["Cost"].append(self.curr_cost)
-            self.graphs["Runtime"].append(self.curr_runtime)
+        x_axis = range(0, self.simulation_settings.containers_num)
+        for repetition in range(self.repetitions_num):  # need to get from simulation settings
+            self.storage_manager.reset_storage()
+            self.reset_costs()
 
-        plot_graph(list(x_axis), self.graphs['Fragmentation'], 'Fragmentation', 'containers',
-                   'Fragmentation Percentage', 'Fragmentation Graph')
-        plot_graph(list(x_axis), self.graphs['Cost'], 'Cost', 'containers',
-                   'Cost', 'Cost')
-        plot_graph(list(x_axis), self.graphs['Runtime'], 'Runtime', 'containers',
-                   'Runtime (sec)', 'Runtime')
-        # plot_graph(list(x_axis), [used_spaces_naive, used_spaces_knap], ['naive', 'knap'], 'containers',
-        #            'Fragmentation Percentage', 'Fragmentation Graph')
-        # plot_graph(list(x_axis), [total_costs_naive, total_costs_knap], ['naive', 'knap'], 'containers',
-        #            'Total Cost', 'Cost Graph')
-        # plot_graph(list(x_axis), [total_times_naive, total_times_knap], ['naive', 'knap'], 'containers',
-        #            'Runtime (seconds)', 'Runtime Graph')
+            print("Inserting 100 Containers")
+            for curr_container in x_axis:
+                # Choose a random container
+                chosen_container = randint(0, self.simulation_settings.containers_num - 1)
+
+                # Insert the container
+                time1 = default_timer()
+                self.storage_manager.insert_container(containers[chosen_container])
+                time2 = default_timer()
+
+                # Update Costs
+                self.curr_runtime += (time2 - time1)
+                self.curr_fragmentation = self.storage_manager.get_fragmentation()
+                self.curr_cost = self.storage_manager.get_total_cost()
+
+                # Update Graphs
+                self.graphs["Fragmentation"][curr_container] += self.curr_fragmentation / self.repetitions_num
+                self.graphs["Cost"][curr_container] += self.curr_cost / self.repetitions_num
+                self.graphs["Runtime"][curr_container] += self.curr_runtime / self.repetitions_num
+
+        # Print Graphs
+        plot_graph(title='Fragmentation Graph',
+                   x_axis=list(x_axis),
+                   y_axis=self.graphs['Fragmentation'],
+                   x_label='Containers',
+                   y_label='Fragmentation Percentage')
+        plot_graph(title='Cost Graph',
+                   x_axis=list(x_axis),
+                   y_axis=self.graphs['Cost'],
+                   x_label='Containers',
+                   y_label='Cost')
+        plot_graph(title='Runtime Graph',
+                   x_axis=list(x_axis),
+                   y_axis=self.graphs['Runtime'],
+                   x_label='Containers',
+                   y_label='Runtime (sec)')
 
 
-def plot_graph(x_axis, y_axis, name, x_label, y_label, title):
+def plot_graph(title, x_axis, y_axis, x_label, y_label, name=""):
     plt.plot(x_axis, y_axis, label=name)
-    #naming the x-axis
+
+    # naming the x-axis
     plt.xlabel(x_label)
     # naming the y-axis
     plt.ylabel(y_label)
@@ -218,7 +237,9 @@ def plot_graph(x_axis, y_axis, name, x_label, y_label, title):
     # giving a title to my graph
     plt.title(title)
 
-    plt.legend()
+    # If you want to add name to the slope add this line:
+    # plt.legend()
+
     # function to show the plot
     plt.show()
 

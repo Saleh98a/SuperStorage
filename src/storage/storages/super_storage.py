@@ -2,12 +2,12 @@
 Our Storage Implementation
 """
 
-from src.storage.storages.storage import Storage, StorageSettings
+from src.storage.storages.storage import Storage
+from src.storage.storages.storage_settings import StorageSettings
 # from src.models.index import Rack, SSForklift, SSPosition
 from src.models.rack import Rack
 from src.models.forklift import SSForklift
 from src.models.position import SSPosition
-import math
 
 
 class SuperStorage(Storage):
