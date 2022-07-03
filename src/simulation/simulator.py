@@ -147,25 +147,67 @@ def initialize_containers(products, containers_num, packages_num_per_container, 
 class Simulator:
     def __init__(self, simulation_settings=SimulationSettings()):
         self.simulation_settings = simulation_settings
-        self.graphs = {"Fragmentation": [0 for _ in range(0, 100)],
-                       "Cost": [0 for _ in range(0, 100)],
-                       "Runtime": [0 for _ in range(0, 100)]}
+        self.containers_num = self.simulation_settings.containers_num
+        self.repetitions_num = self.simulation_settings.repetitions_num
+        self.graphs = {'Fragmentation': [0 for _ in range(0, self.containers_num)],
+                       'Cost':          [0 for _ in range(0, self.containers_num)],
+                       'Runtime':       [0 for _ in range(0, self.containers_num)]}
         self.curr_fragmentation = 0
         self.curr_cost = 0
         self.curr_runtime = 0
         self.storage_manager = StorageManager(SuperStorage(),  # TODO: change, maybe take it from simulation settings
                                               simulation_settings.insert,
                                               simulation_settings.extract)
-        self.repetitions_num = self.simulation_settings.repetitions_num
+        plt.ion()
+
+    @staticmethod
+    def create_graph(curr_ax, x, y, ylabel):
+        curr_ax.plot(x, y)
+        curr_ax.set(ylabel=ylabel)
+        curr_ax.label_outer()
+        curr_ax.set_xlim([1, 100])  # TODO: change to containers num
+
+    def print_plots(self, repetition):
+        fig = plt.figure()
+        axs = []
+        i = 1
+        for graph_name in self.graphs:
+            axs.append(fig.add_subplot(3, 1, i))
+            self.create_graph(axs[-1],
+                              list(range(1, self.containers_num + 1)),
+                              [y / repetition for y in self.graphs[graph_name]],  # Calculates average over repetitions
+                              graph_name)
+            i += 1
+
+        # Give title for 1st Graph
+        axs[0].set_title('Repetitions = ' + str(repetition))
+
+        # Give xlabel for last Graph
+        axs[-1].set(xlabel='Containers')
+
+        # TODO: delete this it is temporary
+        # self.create_graph(fig.add_subplot(3, 1, 1),
+        #                   list(range(1, self.containers_num + 1)),
+        #                   [y / repetition for y in self.graphs['Fragmentation']],
+        #                   'Fragmentation%',
+        #                   title='Repetitions = ' + str(repetition))
+        # self.create_graph(fig.add_subplot(3, 1, 2),
+        #                   list(range(1, self.containers_num + 1)),
+        #                   [y / repetition for y in self.graphs['Cost']],
+        #                   'Cost')
+        # self.create_graph(fig.add_subplot(3, 1, 3),
+        #                   list(range(1, self.containers_num + 1)),
+        #                   [y / repetition for y in self.graphs['Runtime']],
+        #                   'Runtime(sec)',
+        #                   xlabel='Containers')
+
+        plt.ion()
+        plt.show(block=False)
 
     def reset_costs(self):
         self.curr_fragmentation = 0
         self.curr_cost = 0
         self.curr_runtime = 0
-
-    def __str__(self):
-        return "Simulating a storage:\n" + \
-                str(self.simulation_settings)
 
     def simulate(self):
         products = initialize_products()
@@ -173,18 +215,18 @@ class Simulator:
                                            self.simulation_settings.containers_num,
                                            self.simulation_settings.packages_per_container,
                                            self.simulation_settings.storage_settings.shelf_size)
+
         # Print data
         print(self)
 
-        x_axis = range(0, self.simulation_settings.containers_num)
         for repetition in range(self.repetitions_num):  # need to get from simulation settings
             self.storage_manager.reset_storage()
             self.reset_costs()
 
             print("Inserting 100 Containers")
-            for curr_container in x_axis:
+            for curr_container in range(0, self.containers_num):
                 # Choose a random container
-                chosen_container = randint(0, self.simulation_settings.containers_num - 1)
+                chosen_container = randint(0, self.containers_num - 1)
 
                 # Insert the container
                 time1 = default_timer()
@@ -197,23 +239,34 @@ class Simulator:
                 self.curr_cost = self.storage_manager.get_total_cost()
 
                 # Update Graphs
-                self.graphs["Fragmentation"][curr_container] += self.curr_fragmentation / self.repetitions_num
-                self.graphs["Cost"][curr_container] += self.curr_cost / self.repetitions_num
-                self.graphs["Runtime"][curr_container] += self.curr_runtime / self.repetitions_num
+                self.graphs["Fragmentation"][curr_container] += self.curr_fragmentation
+                self.graphs["Cost"][curr_container] += self.curr_cost
+                self.graphs["Runtime"][curr_container] += self.curr_runtime
 
-        # Print Graphs
+            # Print Graphs in every repetition
+            self.print_plots(repetition + 1)
+
+    def __str__(self):
+        return "Simulating a storage:\n" + \
+               str(self.simulation_settings)
+
+
+"""
+    def emit_graphs(self):
+        print("Emitting Graphs")
+        # Displaying Graphs
         plot_graph(title='Fragmentation Graph',
-                   x_axis=list(x_axis),
+                   x_axis=list(range(1, self.simulation_settings.containers_num+1)),
                    y_axis=self.graphs['Fragmentation'],
                    x_label='Containers',
                    y_label='Fragmentation Percentage')
         plot_graph(title='Cost Graph',
-                   x_axis=list(x_axis),
+                   x_axis=list(range(1, self.simulation_settings.containers_num+1)),
                    y_axis=self.graphs['Cost'],
                    x_label='Containers',
                    y_label='Cost')
         plot_graph(title='Runtime Graph',
-                   x_axis=list(x_axis),
+                   x_axis=list(range(1, self.simulation_settings.containers_num+1)),
                    y_axis=self.graphs['Runtime'],
                    x_label='Containers',
                    y_label='Runtime (sec)')
@@ -236,6 +289,7 @@ def plot_graph(title, x_axis, y_axis, x_label, y_label, name=""):
 
     # function to show the plot
     plt.show()
+"""
 
 # def plot_graph(x_axis, y_axis_list, y_names_list, x_label, y_label, title):
 #     # plotting the points

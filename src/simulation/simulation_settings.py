@@ -23,7 +23,7 @@ class SimulationSettings:
                  storage_settings=StorageSettings(),
                  insertion_only=True,
                  interlapping=False,
-                 repetitions_num=1,
+                 repetitions_num=30,
                  containers_num=100,
                  packages_per_container=40):
         self.storage_settings = storage_settings
