@@ -8,10 +8,8 @@ import numpy as np
 # import scipy as scipy
 
 from simulation.simulator import Simulator
-from src.storage.managers.knapsack_storage_manager import KnapsackStorageManager
-from storage.managers.naive_storage_manager import NaiveStorageManager
-from storage.storages.super_storage import SuperStorage
-from src.simulation.simulation_settings import SimulationSettings
+
+from src.simulation.simulation_settings import SimulationSettings, InsertAlgorithm, ExtractAlgorithm
 
 
 def print_hi(name):
@@ -21,15 +19,9 @@ def print_hi(name):
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    """
-    s1 = SuperStorage()
-    naive1 = NaiveStorageManager(s1)
-    sim1 = Simulator()
-    sim1.simulate(naive1)
-    """
-    sim2 = Simulator()
+    sim2 = Simulator(SimulationSettings(insert_algo=InsertAlgorithm.KNAPSACK,
+                                        extract_algo=ExtractAlgorithm.NAIVE))
     sim2.simulate()
-
     """
     print("starting to learn our distribution :-")
     # size[i]/total_size
@@ -73,9 +65,19 @@ if __name__ == '__main__':
         print("the true frequency of product", i + 1, "is ", theoretical_frequency, "measured frequency is ", measured)
         total_error += abs(measured - theoretical_frequency) / theoretical_frequency
     print("total error is :- ", total_error / products_num)
+            measured = (total_products_orders[i]/sample_size) * (total_products_quantity[i]/total_products_orders[i])
+            measured = (total_products_quantity[i]/total_quantity)
+        print("the true frequency of product", i+1, "is ", theoretical_frequency, "measured frequency is ", measured)
+        total_error += abs(measured - theoretical_frequency)/theoretical_frequency
+    print("total error is :- ", total_error/products_num)
     """
-
-    print_hi('success')
+    """
+    s2 = SuperStorage()
+    knapsack1 = KnapsackStorageManager(s2)
+    sim2 = Simulator()
+    sim2.simulate(knapsack1)
+    """
+    print_hi('It\'s Chewsday Innit')
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
 
 # def learn(products) => updates the frequency/percentage/....

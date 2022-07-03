@@ -23,7 +23,7 @@ class SimulationSettings:
                  storage_settings=StorageSettings(),
                  insertion_only=True,
                  interlapping=False,
-                 repetitions_num=100,
+                 repetitions_num=1,
                  containers_num=100,
                  packages_per_container=40):
         self.storage_settings = storage_settings
@@ -34,6 +34,13 @@ class SimulationSettings:
         self.repetitions_num = repetitions_num
         self.containers_num = containers_num
         self.packages_per_container = packages_per_container
+
+    def __str__(self):
+        return str(self.storage_settings) + \
+               "Repetitions Num: " + str(self.repetitions_num) + "\n" + \
+               "Containers Num: " + str(self.containers_num) + "\n" + \
+               "Packages Per Container: " + str(self.packages_per_container)
+
 
 """
 what parameters we need ?!
