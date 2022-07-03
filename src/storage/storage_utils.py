@@ -2,8 +2,55 @@
 Utils/Helper Function for Storage
 """
 from copy import copy
+from src.models.index import Container, SSPosition
 
-from src.models.container import Container
+
+def get_distance(pos1, pos2):
+    return abs(pos1.row-pos2.row) + abs(pos1.col-pos2.col) + abs(pos1.shelf_num-pos2.shelf_num)
+
+
+def add_position(current_path, new_pos):
+    length = len(current_path)
+    if length == 0:
+        return [new_pos]
+    elif length == 1:
+        current_path.append(new_pos)
+        return current_path
+    else:
+        min_cost = get_distance(current_path[length-1], new_pos)
+        min_cost += get_distance(new_pos, current_path[0])
+        min_cost -= get_distance(current_path[length-1], current_path[0])
+        min_index = length-1
+        for i in range(length-1):
+            added_cost = get_distance(current_path[i], new_pos) + get_distance(new_pos, current_path[i+1])
+            added_cost -= get_distance(current_path[i], current_path[i+1])
+            if added_cost < min_cost:
+                min_cost = added_cost
+                min_index = i
+        first_half = current_path[:min_index+1]
+        second_half = current_path[min_index+1:]
+        new_path = first_half + [new_pos] + second_half
+        return new_path
+
+
+def print_path(path):
+    for pos in path:
+        print("col= ", pos.col, "row=", pos.row, "height=", pos.height)
+
+
+def find_optimized_path(positions):
+    shortest_path = []
+    for pos in positions:
+        shortest_path = add_position(shortest_path, pos)
+    return shortest_path
+
+
+def get_path_cost(path):
+    length = len(path)
+    cost = get_distance(path[length-1], path[0])
+    for i in range(length-1):
+        cost += get_distance(path[i], path[i+1])
+    return cost
 
 
 def insert_naive(storage, forklift, container):
@@ -42,22 +89,141 @@ def insert_knapsack(storage, forklift, container):
     for position in positions_iter:
         if cont.size() == 0:
             return True
-        knapsack_shelf(storage, forklift, cont, storage.get_shelf(position), position)
+        packages_to_insert = knapsack_shelf(storage, cont.packages, position)
+        for package in packages_to_insert:
+            cont.remove_package(package)
+            storage.insert_package(forklift, package, position)
     return False
 
-def extract_modified(storage, forklift, order):
-    pass
 
-def insert_optimized(storage, container):
-    pass
+def get_product_positions(product, quantity, storage_manager):
+    # gets product and required amount and returns list of (position, quantity) where to get this quantity from storage
+    storage_quantity = 0
+    positions_quantity = []
+    for sector in storage_manager.sectors:
+        for position in sector:
+            if storage_quantity >= quantity:
+                break
+            current_quantity = storage_manager.storage.get_item_quantity_at(product, position)
+            if current_quantity > 0 :
+                storage_quantity += current_quantity
+                positions_quantity.append((position, current_quantity))
 
-def knapsack_shelf(storage, forklift, container, shelf, position):
+    if storage_quantity < quantity:
+        raise Exception("not all the order are in the sotrage,")
+
+    while positions_quantity[0][0] <= (storage_quantity-quantity):
+        storage_quantity -= positions_quantity[0][0]
+        positions_quantity.pop(0)
+
+    positions_quantity[0][0] -= (storage_quantity-quantity)
+    return positions_quantity
+
+
+def extract_optimized(storage_manager, forklift, order):
+    position_actions = {}
+    for product in order.item_orders:
+        positions_quantity = get_product_positions(product, order.item_orders[product], storage_manager)
+        for (position, quantity) in positions_quantity:
+            if position in position_actions.keys():
+                position_actions[position].append((product, quantity))
+            else:
+                position_actions[position] = [(product, quantity)]
+    positions = list(position_actions.keys())
+    path = find_optimized_path(positions)
+    for position in path:
+        for (product, quantity) in position_actions[position]:
+            storage_manager.storage.extract_product(forklift, product, quantity, position)
+
+
+def insert_optimized(storage, forklift, container):
+    # default optimization settings
+    priority_one_pos = [[[
+        SSPosition(row, rack, shelf)
+        for shelf in range(0, storage.shelves_per_rack)]
+        for rack in range(0, 1)]
+        for row in range(0, 1)]
+    priority_two_pos = [[[
+        SSPosition(row, rack, shelf)
+        for shelf in range(0, storage.shelves_per_rack)]
+        for rack in range(1, 3)]
+        for row in range(1, 3)]
+    priority_three_pos = [[[
+        SSPosition(row, rack, shelf)
+        for shelf in range(0, storage.shelves_per_rack)]
+        for rack in range(3, 5)]
+        for row in range(3, 5)]
+    percentaged_one_pos = [[[
+        SSPosition(row, rack, shelf)
+        for shelf in range(0, storage.shelves_per_rack)]
+        for rack in range(5, 7)]
+        for row in range(5, 7)]
+    percentaged_two_pos = [[[
+        SSPosition(row, rack, shelf)
+        for shelf in range(0, storage.shelves_per_rack)]
+        for rack in range(7, 9)]
+        for row in range(7, 9)]
+    free_area_pos = [[[
+        SSPosition(row, rack, shelf)
+        for shelf in range(0, storage.shelves_per_rack)]
+        for rack in range(9, storage.racks_per_row)]
+        for row in range(9, storage.rows)]
+    # lists of packages according to where they should go
+    # we should have info about current levels in storage
+    priority_1 = []
+    priority_2 = []
+    priority_3 = []
+    percentaged_1 = []
+    percentaged_2 = []
+    kanpsacked = []
+    for package in container.packages:
+        break
+        # Is it prioritized?
+        #   priority_1.append(package) Add it to one of the priority zones
+        #   priority_2.append(package) Add it to one of the priority zones
+        #   priority_3.append(package) Add it to one of the priority zones
+        # Goes to percentaged section?
+        #   percentaged_1.append(package) (if it allows saving proper percentages in percentaged level 1)
+        #   percentaged_2.append(package) (if it allows saving proper percentages in percentaged level 2)
+        # Knapsack them kids
+        #   kanpsacked.append(package)
+
+    # TODO: territory class? with iterator over its positions
+
+    instructions_map = {}
+    insert_instruction_knapsack(storage, priority_1, priority_one_pos, instructions_map)
+    insert_instruction_knapsack(storage, priority_2, priority_two_pos, instructions_map)
+    insert_instruction_knapsack(storage, priority_3, priority_three_pos, instructions_map)
+    insert_instruction_knapsack(storage, percentaged_1, percentaged_one_pos, instructions_map)
+    insert_instruction_knapsack(storage, percentaged_2, percentaged_two_pos, instructions_map)
+    insert_instruction_knapsack(storage, kanpsacked, free_area_pos, instructions_map)
+
+    # Optimize path
+    positions_on_path = instructions_map.keys()
+    # path = optimize_path(positions_on_path)
+    # for position in path:
+    #   for package in instructions_map[position]:
+    #       insert package to position
+
+    return
+
+def insert_instruction_knapsack(storage, packages, positions, instructions_map={}):
+    for row in positions:
+        for rack in row:
+            for position in rack:
+                packages_in_pos = instructions_map[position] = knapsack_shelf(storage, packages, position)
+                for package in packages_in_pos:
+                    packages.remove(package)
+    return instructions_map
+
+def knapsack_shelf(storage, packages, position):
+    shelf = storage.get_shelf(position)
     free_size = shelf.size-shelf.used_size
     memo = [Container() for _ in range(free_size + 1)]
     for i in range(1, free_size+1):
         max_used = memo[i-1].size()
         like_previous = True
-        for package in container.packages:
+        for package in packages:
             if package.size() <= i and package not in memo[i-package.size()].packages:
                 if package.size() + memo[i-package.size()].size() > max_used:
                     like_previous = False
@@ -66,6 +232,4 @@ def knapsack_shelf(storage, forklift, container, shelf, position):
                     memo[i].add_package(package)
         if like_previous:
             memo[i] = memo[i-1]
-    for package in memo[free_size].packages:
-        container.remove_package(package)
-        storage.insert_package(forklift, package, position)
+    return memo[free_size].packages
