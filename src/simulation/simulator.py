@@ -163,16 +163,9 @@ class Simulator:
         self.curr_cost = 0
         self.curr_runtime = 0
 
-    def print(self):  # TODO: maybe print simulation settings and not simulator
-        print("Simulating a storage:")
-        print("Dimensions are:")
-        print("     Rows:", self.simulation_settings.storage_settings.rows)
-        print("     Racks Per Row:", self.simulation_settings.storage_settings.rows)
-        print("     Shelves Per Rack:", self.simulation_settings.storage_settings.shelves_per_rack)
-        print("     Shelf Size:", self.simulation_settings.storage_settings.shelf_size)
-        print("Repetitions Num:", self.simulation_settings.repetitions_num)
-        print("Containers Num:", self.simulation_settings.containers_num)
-        print("Packages Per Container:", self.simulation_settings.packages_per_container)
+    def __str__(self):
+        return "Simulating a storage:\n" + \
+                str(self.simulation_settings)
 
     def simulate(self):
         products = initialize_products()
@@ -181,7 +174,7 @@ class Simulator:
                                            self.simulation_settings.packages_per_container,
                                            self.simulation_settings.storage_settings.shelf_size)
         # Print data
-        self.print()
+        print(self)
 
         x_axis = range(0, self.simulation_settings.containers_num)
         for repetition in range(self.repetitions_num):  # need to get from simulation settings
@@ -231,6 +224,7 @@ def plot_graph(title, x_axis, y_axis, x_label, y_label, name=""):
 
     # naming the x-axis
     plt.xlabel(x_label)
+
     # naming the y-axis
     plt.ylabel(y_label)
 
