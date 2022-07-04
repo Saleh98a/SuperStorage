@@ -215,7 +215,6 @@ class Simulator:
                                            self.simulation_settings.containers_num,
                                            self.simulation_settings.packages_per_container,
                                            self.simulation_settings.storage_settings.shelf_size)
-
         # Print data
         print(self)
 
