@@ -19,8 +19,7 @@ def print_hi(name):
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    sim2 = Simulator(SimulationSettings(insert_algo=InsertAlgorithm.KNAPSACK,
-                                        extract_algo=ExtractAlgorithm.NAIVE))
+    sim2 = Simulator()
     sim2.simulate()
     """
     print("starting to learn our distribution :-")

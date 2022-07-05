@@ -149,23 +149,34 @@ class Simulator:
         self.simulation_settings = simulation_settings
         self.containers_num = self.simulation_settings.containers_num
         self.repetitions_num = self.simulation_settings.repetitions_num
-        self.graphs = {'Fragmentation': [0 for _ in range(0, self.containers_num)],
-                       'Cost':          [0 for _ in range(0, self.containers_num)],
-                       'Runtime':       [0 for _ in range(0, self.containers_num)]}
+        # self.graphs = {'Fragmentation': [0 for _ in range(0, self.containers_num)],
+        #                'Cost': [0 for _ in range(0, self.containers_num)],
+        #                'Runtime': [0 for _ in range(0, self.containers_num)]}
         self.curr_fragmentation = 0
         self.curr_cost = 0
         self.curr_runtime = 0
-        self.storage_manager = StorageManager(SuperStorage(),  # TODO: change, maybe take it from simulation settings
-                                              simulation_settings.insert,
-                                              simulation_settings.extract)
-        plt.ion()
 
-    @staticmethod
-    def create_graph(curr_ax, x, y, ylabel):
-        curr_ax.plot(x, y)
+        self.storage_managers = []
+        self.graphs = {'Fragmentation': {},
+                       'Cost': {},
+                       'Runtime': {}}
+        for insert in simulation_settings.insert:
+            for extract in simulation_settings.extract:
+                # TODO: change SuperStorage(), maybe take it from simulation settings
+                storage_manager = StorageManager(SuperStorage(), insert, extract)
+                self.storage_managers.append(storage_manager)
+                # print(storage_manager.specifier())
+                for graph in self.graphs:
+                    self.graphs[graph][storage_manager.specifier()] = [0 for _ in range(0, self.containers_num)]
+
+        # plt.ion()
+
+    def create_graph(self, curr_ax, x, ylist, ynames, ylabel):
+        for y, yname in zip(ylist, ynames):
+            curr_ax.plot(x, y, label=yname)
         curr_ax.set(ylabel=ylabel)
         curr_ax.label_outer()
-        curr_ax.set_xlim([1, 100])  # TODO: change to containers num
+        curr_ax.set_xlim([1, self.containers_num])  # TODO: change to containers num
 
     def print_plots(self, repetition):
         fig = plt.figure()
@@ -175,7 +186,9 @@ class Simulator:
             axs.append(fig.add_subplot(3, 1, i))
             self.create_graph(axs[-1],
                               list(range(1, self.containers_num + 1)),
-                              [y / repetition for y in self.graphs[graph_name]],  # Calculates average over repetitions
+                              # Calculates average over repetitions
+                              [[y / repetition for y in self.graphs[graph_name][manager]] for manager in self.graphs[graph_name]],
+                              [manager for manager in self.graphs[graph_name]],
                               graph_name)
             i += 1
 
@@ -185,23 +198,8 @@ class Simulator:
         # Give xlabel for last Graph
         axs[-1].set(xlabel='Containers')
 
-        # TODO: delete this it is temporary
-        # self.create_graph(fig.add_subplot(3, 1, 1),
-        #                   list(range(1, self.containers_num + 1)),
-        #                   [y / repetition for y in self.graphs['Fragmentation']],
-        #                   'Fragmentation%',
-        #                   title='Repetitions = ' + str(repetition))
-        # self.create_graph(fig.add_subplot(3, 1, 2),
-        #                   list(range(1, self.containers_num + 1)),
-        #                   [y / repetition for y in self.graphs['Cost']],
-        #                   'Cost')
-        # self.create_graph(fig.add_subplot(3, 1, 3),
-        #                   list(range(1, self.containers_num + 1)),
-        #                   [y / repetition for y in self.graphs['Runtime']],
-        #                   'Runtime(sec)',
-        #                   xlabel='Containers')
-
         plt.ion()
+        plt.legend()
         plt.show(block=False)
 
     def reset_costs(self):
@@ -219,7 +217,8 @@ class Simulator:
         print(self)
 
         for repetition in range(self.repetitions_num):  # need to get from simulation settings
-            self.storage_manager.reset_storage()
+            for storage_manager in self.storage_managers:
+                storage_manager.reset_storage()
             self.reset_costs()
 
             print("Inserting 100 Containers")
@@ -227,20 +226,21 @@ class Simulator:
                 # Choose a random container
                 chosen_container = randint(0, self.containers_num - 1)
 
-                # Insert the container
-                time1 = default_timer()
-                self.storage_manager.insert_container(containers[chosen_container])
-                time2 = default_timer()
+                for storage_manager in self.storage_managers:
+                    # Insert the container
+                    time1 = default_timer()
+                    storage_manager.insert_container(containers[chosen_container])
+                    time2 = default_timer()
 
-                # Update Costs
-                self.curr_runtime += (time2 - time1)
-                self.curr_fragmentation = self.storage_manager.get_fragmentation()
-                self.curr_cost = self.storage_manager.get_total_cost()
+                    # Update Costs
+                    self.curr_runtime += (time2 - time1)
+                    self.curr_fragmentation = storage_manager.get_fragmentation()
+                    self.curr_cost = storage_manager.get_total_cost()
 
-                # Update Graphs
-                self.graphs["Fragmentation"][curr_container] += self.curr_fragmentation
-                self.graphs["Cost"][curr_container] += self.curr_cost
-                self.graphs["Runtime"][curr_container] += self.curr_runtime
+                    # Update Graphs
+                    self.graphs["Fragmentation"][storage_manager.specifier()][curr_container] += self.curr_fragmentation
+                    self.graphs["Cost"][storage_manager.specifier()][curr_container] += self.curr_cost
+                    self.graphs["Runtime"][storage_manager.specifier()][curr_container] += self.curr_runtime
 
             # Print Graphs in every repetition
             self.print_plots(repetition + 1)
@@ -248,61 +248,3 @@ class Simulator:
     def __str__(self):
         return "Simulating a storage:\n" + \
                str(self.simulation_settings)
-
-
-"""
-    def emit_graphs(self):
-        print("Emitting Graphs")
-        # Displaying Graphs
-        plot_graph(title='Fragmentation Graph',
-                   x_axis=list(range(1, self.simulation_settings.containers_num+1)),
-                   y_axis=self.graphs['Fragmentation'],
-                   x_label='Containers',
-                   y_label='Fragmentation Percentage')
-        plot_graph(title='Cost Graph',
-                   x_axis=list(range(1, self.simulation_settings.containers_num+1)),
-                   y_axis=self.graphs['Cost'],
-                   x_label='Containers',
-                   y_label='Cost')
-        plot_graph(title='Runtime Graph',
-                   x_axis=list(range(1, self.simulation_settings.containers_num+1)),
-                   y_axis=self.graphs['Runtime'],
-                   x_label='Containers',
-                   y_label='Runtime (sec)')
-
-
-def plot_graph(title, x_axis, y_axis, x_label, y_label, name=""):
-    plt.plot(x_axis, y_axis, label=name)
-
-    # naming the x-axis
-    plt.xlabel(x_label)
-
-    # naming the y-axis
-    plt.ylabel(y_label)
-
-    # giving a title to my graph
-    plt.title(title)
-
-    # If you want to add name to the slope add this line:
-    # plt.legend()
-
-    # function to show the plot
-    plt.show()
-"""
-
-# def plot_graph(x_axis, y_axis_list, y_names_list, x_label, y_label, title):
-#     # plotting the points
-#     for y_axis, name in zip(y_axis_list, y_names_list):
-#         plt.plot(x_axis, y_axis, label=name)
-#
-#     # naming the x-axis
-#     plt.xlabel(x_label)
-#     # naming the y-axis
-#     plt.ylabel(y_label)
-#
-#     # giving a title to my graph
-#     plt.title(title)
-#
-#     plt.legend()
-#     # function to show the plot
-#     plt.show()
