@@ -10,11 +10,12 @@ from src.storage.storages.storage_settings import StorageSettings
 class InsertAlgorithm(Enum):
     NAIVE = 1
     KNAPSACK = 2
+    OPTIMIZED = 3
 
 
 class ExtractAlgorithm(Enum):
     NAIVE = 1
-
+    OPTIMIZED = 2
 
 class SimulationSettings:
     def __init__(self,

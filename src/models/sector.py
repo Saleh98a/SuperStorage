@@ -8,7 +8,7 @@ from src.models.index import SSPosition
 class Sector:
     def __init__(self, positions, pos_size=200):
         self.positions = positions
-        self.total_size = positions.size() * pos_size
+        self.total_size = len(positions) * pos_size
         self.item_quantities = {}
 
     def get_quantity(self, item):
@@ -36,18 +36,6 @@ class Sector:
         if self.item_quantities[item] == 0:
             self.item_quantities.pop(item)
 
-    def __iter__(self):
-        self.current_pos = 0
-        return self.positions[self.current_pos]
-
-    def __next__(self):
-        if self.current_pos == len(self.positions):
-            raise StopIteration
-        temp = self.positions[self.current_pos]
-        self.current_pos += 1
-        return temp
-
-
     @staticmethod
     def check_if_in_range(row, col, min_dist, max_dist):
         if row + col > max_dist:
@@ -60,11 +48,12 @@ class Sector:
     @staticmethod
     def build_sector(min_dist, max_dist, shelves_num, storage_rows, storage_racks_per_row):
         positions = []
-        for k in range(max_dist + 1):
-            for j in range(k + 1):
-                i = k - j
-                if i < storage_rows and j < storage_racks_per_row:
-                    if Sector.check_if_in_range(i, j, min_dist, max_dist):
-                        for shelf_num in range(shelves_num):
-                            positions.append(SSPosition(i, j, shelf_num))
+        for i in range(max_dist + 1):
+            for j in range(max_dist + 1):
+                for k in range(shelves_num):
+                    distance = i+j
+                    if min_dist <= distance <= max_dist:
+                        if i < storage_rows and j < storage_racks_per_row:
+                            position = SSPosition(i, j, k)
+                            positions.append(position)
         return Sector(positions)

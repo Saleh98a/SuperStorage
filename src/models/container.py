@@ -3,6 +3,7 @@ Container
 Container is basically a set of packages
 """
 
+
 class Container:
     def __init__(self, packages=None):
         if packages is None:
@@ -16,7 +17,7 @@ class Container:
         self.packages.remove(package)
 
     def size(self):
-        sum = 0
+        total = 0
         for package in self.packages:
-            sum += package.size()
-        return sum
+            total += package.size()
+        return total
