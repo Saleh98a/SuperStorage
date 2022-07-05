@@ -9,22 +9,24 @@ from src.simulation.simulation_settings import InsertAlgorithm, ExtractAlgorithm
 
 
 class StorageManager:
-    def __init__(self, storage, insert_algo, extract_algo, sector_bounds=[]):
+    def __init__(self, storage, insert_algo, extract_algo, sector_bounds=None):
+        if sector_bounds is None:
+            sector_bounds = []
         self.storage = storage  # SuperStorage()
         self.forklift = SSForklift()
         self.insert_algorithm = insert_algo
         self.extract_algorithm = extract_algo
         self.sectors = []
         prev_bound = 0
-        shelves_num = storage.storage_settings.shelves_num
+        shelves_per_rack = storage.storage_settings.shelves_per_rack
         racks_per_row = storage.storage_settings.racks_per_row
         rows = storage.storage_settings.rows
         for bound in sector_bounds:
-            current_sector = Sector.build_sector(prev_bound, bound-1, shelves_num, rows, racks_per_row)
+            current_sector = Sector.build_sector(prev_bound, bound-1, shelves_per_rack, rows, racks_per_row)
             self.sectors.append(current_sector)
             prev_bound = bound
 
-        last_sector = Sector.build_sector(prev_bound, rows+racks_per_row, shelves_num, rows, racks_per_row)
+        last_sector = Sector.build_sector(prev_bound, rows+racks_per_row, shelves_per_rack, rows, racks_per_row)
         self.sectors.append(last_sector)
 
     def insert_container(self, container):
@@ -51,3 +53,6 @@ class StorageManager:
 
     def reset_storage(self):
         self.storage = SuperStorage(self.storage.storage_settings)
+
+    def specifier(self):
+        return str(self.insert_algorithm) + " " + str(self.extract_algorithm)
