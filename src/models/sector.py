@@ -8,7 +8,7 @@ from src.models.index import SSPosition
 class Sector:
     def __init__(self, positions, pos_size=200):
         self.positions = positions
-        self.total_size = positions.size() * pos_size
+        self.total_size = len(positions) * pos_size
         self.item_quantities = {}
 
     def get_quantity(self, item):
