@@ -126,7 +126,7 @@ def initialize_products():
     products = []
     i = 0
     for name in product_names:
-        products.append(Product(i, name, 0, randint(15, 40), 'cat'))  # TODO: change
+        products.append(Product(i, name, 0, randint(10, 30), 'cat'))  # TODO: change quantity and category
         i += 1
     return products
 

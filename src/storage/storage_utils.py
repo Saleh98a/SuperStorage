@@ -112,21 +112,15 @@ def insert_optimized(storage_manager, forklift, container):
     products_info = storage_manager.products_info
     top_level_percentage = storage_manager.top_level_percentage
     sectors = storage_manager.sectors
-    print("*************************************************")
-    print("-------------------------------------------------")
-    for sector in sectors:
-        print("sector positions is:-")
-        for position in sector.positions:
-            print("     ", position.row, position.col, position.shelf_num)
     positions_actions = {}  # packages to insert in each position
     current_sector_packages = []    # packages of current sector
     packages_to_remove = []         # packages that need to remove from container
-    storage_quantity = [0 for _ in range(len(products_info))]
     updated_packages = []
-    print("printing container :-")
-    for package in container.packages:
-        print("product ID=", package.product.id, "quantity=", package.quantity)
-
+    # TODO: remove the shit below from the code this is just for testing
+    print("insert started -")
+    first_sector_packs_num = 0
+    second_and_third_sector_packs_num = 0
+    last_sector_packs_num = 0
     # first_stage:- check for top frequency products - Sector 1
     for package in container.packages:
         product = package.product
@@ -144,6 +138,7 @@ def insert_optimized(storage_manager, forklift, container):
                     updated_package = Package(product, total_quantity - quantity_to_add)
                     updated_packages.append(updated_package)
                 current_sector_packages.append(Package(product, quantity_to_add))
+                first_sector_packs_num += 1
                 sectors[0].add_to_sector(product, quantity_to_add)
             else:
                 updated_packages.append(package)
@@ -154,28 +149,27 @@ def insert_optimized(storage_manager, forklift, container):
         if len(current_sector_packages) == 0:
             break
         packages_to_insert = knapsack_shelf(storage, current_sector_packages, position)
-        if len(packages_to_insert) > 0:
+        if position not in positions_actions.keys():
             positions_actions[position] = []
         for current_package in packages_to_insert:
             positions_actions[position].append(current_package)
-            if current_package.product.id == 0:
-                print("**************************go fuck yourself1111111111111111111111111111")
             current_sector_packages.remove(current_package)
 
     container = Container(updated_packages)
     updated_packages = []
-    print("first level are ready ")
-
+    for remain in current_sector_packages:
+        container.add_package(remain)
+    print("number of insertions in the first sector is ", first_sector_packs_num)
     # second stage + third stage:- check for top size_percentage products
     for i in range(1, 3):
-        if container.size() == 0:
+        if not container.packages:
             break
         for package in container.packages:
             product = package.product
             total_quantity = package.quantity
             current_percent = sectors[i].get_percentage(product)
             max_percent = products_info[product.id].size_percentage
-            max_add_quantity = int((max_percent - current_percent) * sectors[0].total_size)
+            max_add_quantity = int((max_percent - current_percent) * sectors[i].total_size)
             if current_percent < max_percent and max_add_quantity > 0:
                 quantity_to_add = max_add_quantity
                 if max_add_quantity >= total_quantity:
@@ -185,13 +179,14 @@ def insert_optimized(storage_manager, forklift, container):
                     updated_package = Package(product, total_quantity - quantity_to_add)
                     updated_packages.append(updated_package)
                 current_sector_packages.append(Package(product, quantity_to_add))
+                second_and_third_sector_packs_num += 1
                 sectors[i].add_to_sector(product, quantity_to_add)
             else:
                 updated_packages.append(package)
 
         for position in sectors[i].positions:
             packages_to_insert = knapsack_shelf(storage, current_sector_packages, position)
-            if len(packages_to_insert):
+            if position not in positions_actions.keys():
                 positions_actions[position] = []
             if len(current_sector_packages) == 0:
                 break
@@ -200,28 +195,29 @@ def insert_optimized(storage_manager, forklift, container):
                 current_sector_packages.remove(current_package)
         container = Container(updated_packages)
         updated_packages = []
-    print("second and third level are ready")
-    # fourth stage:- check for last_level products(knapsack)
+        for remain in current_sector_packages:
+            container.add_package(remain)
+    print("second and third sectors insertions num is", second_and_third_sector_packs_num)
+# fourth stage:- check for last_level products(knapsack)
+    print("last sector insertions num is", len(container.packages))
+    for package in container.packages:
+        sectors[3].add_to_sector(package.product, package.quantity)
 
     for position in sectors[3].positions:
         if len(container.packages) == 0:
             break
         packages_to_insert = knapsack_shelf(storage, container.packages, position)
-        if len(packages_to_insert):
+        if position not in positions_actions.keys():
             positions_actions[position] = []
         for current_package in packages_to_insert:
             positions_actions[position].append(current_package)
             container.remove_package(current_package)
-
-    print("last level are ready , supposed all your products quantity are in your storage")
+    #print("last level are ready , supposed all your products quantity are in your storage")
     # fifth stage:- insert to the storage
     path = find_optimized_path(positions_actions.keys())
     for position in path:
-        print("pos =", position.row, position.col, position.shelf_num)
         for package in positions_actions[position]:
-            print("     product ID=", package.product.id, "quantity=", package.quantity)
             storage.insert_package(forklift, package, position)
-            storage_quantity[package.product.id] += package.quantity
     # last stage:- check if every product quantity are equal to the quantity you want
     """
     for row in storage.racks:
@@ -230,9 +226,20 @@ def insert_optimized(storage_manager, forklift, container):
                 for product in shelf.item_quantities.keys():
                     storage_quantity[product.id] += shelf.item_quantities[product]
     """
-    print("printing the quantity in our storage :-")
+    # TODO: remove the code below' this is just for tests
+    print("insertion completed successfully")
+    storage_quantity = [0 for _ in range(100)]
+    for row in storage_manager.storage.racks:
+        for rack in row:
+            for shelf in rack.shelves:
+                for product in shelf.item_quantities.keys():
+                    storage_quantity[product.id] += shelf.item_quantities[product]
+    all_products_quantity = 0
     for i in range(len(storage_quantity)):
-        print("product ID=", i, "storage quantity=", storage_quantity[i])
+        # print("product ID=", i, "storage quantity=", storage_quantity[i])
+        all_products_quantity += storage_quantity[i]
+    print("printing quantity of all products in storage:-")
+    print(all_products_quantity)
     """       
     # optimization settings
     priority_one_pos = build_territory([0], [0], range(0, storage.shelves_per_rack))
@@ -314,13 +321,21 @@ def get_product_positions(product, quantity, storage_manager):
                 positions_quantity.append((position, current_quantity))
 
     if storage_quantity < quantity:
+        print("******************")
+        print("storage quantity=", storage_quantity, "product ID=", product.id)
+        print("needed quantity=", quantity)
+        print("******************")
         raise Exception("not all the order are in the sotrage,")
 
-    while positions_quantity[0][0] <= (storage_quantity - quantity):
-        storage_quantity -= positions_quantity[0][0]
+    first_quantity = storage_manager.storage.get_item_quantity_at(product, positions_quantity[0][0])
+    while first_quantity <= (storage_quantity - quantity):
+        storage_quantity -= first_quantity
         positions_quantity.pop(0)
-
-    positions_quantity[0][0] -= (storage_quantity - quantity)
+        first_quantity = storage_manager.storage.get_item_quantity_at(product, positions_quantity[0][0])
+    pos = positions_quantity[0][0]
+    quantity = positions_quantity[0][1] - (storage_quantity - quantity)
+    positions_quantity.pop(0)
+    positions_quantity = [(pos, quantity)] + positions_quantity
     return positions_quantity
 
 
@@ -338,6 +353,28 @@ def extract_optimized(storage_manager, forklift, order):
     for position in path:
         for (product, quantity) in position_actions[position]:
             storage_manager.storage.extract_product(forklift, product, quantity, position)
+
+    for sector in storage_manager.sectors:
+        for position in sector.positions:
+            if position in position_actions.keys():
+                for (product, quantity) in position_actions[position]:
+                    sector.remove_from_sector(product, quantity)
+
+    # TODO: remove the code below' this is just for tests
+    storage_quantity = [0 for _ in range(100)]
+    for row in storage_manager.storage.racks:
+        for rack in row:
+            for shelf in rack.shelves:
+                for product in shelf.item_quantities.keys():
+                    storage_quantity[product.id] += shelf.item_quantities[product]
+    print("extraction completed successfully")
+    print("printing all quantities in our storage after the extraction")
+    all_products_quantity = 0
+    for i in range(len(storage_quantity)):
+        # print("product ID=", i, "storage quantity=", storage_quantity[i])
+        all_products_quantity += storage_quantity[i]
+    print("printing quantity of all products in storage:-")
+    print(all_products_quantity)
 
 
 def knapsack_shelf(storage, packages, position):

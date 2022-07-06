@@ -54,7 +54,11 @@ class SuperStorage(Storage):
         self.racks[position.row][position.col].used_size -= extracted_quantity * product.size
 
         if extracted_quantity <= quantity and not extracted_quantity == 0:
-            self.items_map[product].remove(position)
+            for position_to_check in self.items_map[product]:
+                if position_to_check.row == position.row and position_to_check.col == position.col:
+                    if position_to_check.shelf_num == position.shelf_num:
+                        self.items_map[product].remove(position_to_check)
+                        break
         return extracted_quantity
 
     def calculate_forklift_cost(self, forklift, position):

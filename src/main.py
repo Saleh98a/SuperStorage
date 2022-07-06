@@ -9,6 +9,7 @@ import numpy as np
 
 from simulation.simulator import Simulator, initialize_products
 from src.models.container import Container
+from src.models.order import Order
 from src.models.package import Package
 
 from src.simulation.simulation_settings import SimulationSettings, InsertAlgorithm, ExtractAlgorithm
@@ -26,17 +27,26 @@ if __name__ == '__main__':
     products = initialize_products()
     learned_info = learn(products, 100000)
     store = SuperStorage()
-    bounds = [2, 4, 7]
+    bounds = [2, 8, 14]
     manager = StorageManager(store, InsertAlgorithm.OPTIMIZED, ExtractAlgorithm.OPTIMIZED, bounds, learned_info)
-    cont = Container()
-    for i in range(len(learned_info)):
-        print("product number", i, "frequency=", learned_info[i].frequency, "percentage=", learned_info[i].size_percentage)
-    for i in range(len(learned_info)):
-        pack = Package(products[i], int(1000 * learned_info[i].size_percentage))
-        cont.add_package(pack)
-    for package in cont.packages:
-        print(" product = ", package.product.id, "quantity=", package.quantity)
-    manager.insert_container(cont)
+    for i in range(10):
+        first_container = Container()
+        second_container = Container()
+        third_container = Container()
+        first_order = Order()
+        second_order = Order()
+        for product in products:
+            first_container.add_package(Package(product, 3))
+            second_container.add_package(Package(product, 5))
+            third_container.add_package(Package(product, 2))
+            first_order.add_to_order(product, 5)
+            second_order.add_to_order(product, 5)
+        manager.insert_container(first_container)
+        manager.insert_container(second_container)
+        manager.extract_order(first_order)
+        if i % 2:
+            manager.extract_order(second_order)
+        manager.insert_container(third_container)
     sim2 = Simulator(SimulationSettings(insert_algo=InsertAlgorithm.KNAPSACK,
                                         extract_algo=ExtractAlgorithm.NAIVE))
     sim2.simulate()

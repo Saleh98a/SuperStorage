@@ -5,6 +5,7 @@ from random import randint
 
 import numpy as np
 
+from src.models.package import Package
 from src.models.product import ProductInfo
 from src.models.sector import Sector
 from src.storage.storage_utils import insert_naive, insert_knapsack, extract_naive, insert_optimized, extract_optimized
@@ -110,6 +111,7 @@ class StorageManager:
             print("product number", i, "top level frequency=", self.top_level_percentage[i])
 
     def insert_container(self, container):
+        # TODO: here we have to check and handle if there is package with size bigger than shelf size
         self.storage.move_forklift(self.forklift)  # Move forklift to (0,0,0)
         if self.insert_algorithm is InsertAlgorithm.NAIVE:  # TODO: maybe map is more elegant?
             insert_naive(self.storage, self.forklift, container)
@@ -133,3 +135,5 @@ class StorageManager:
 
     def reset_storage(self):
         self.storage = SuperStorage(self.storage.storage_settings)
+
+

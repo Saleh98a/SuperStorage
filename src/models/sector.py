@@ -21,7 +21,7 @@ class Sector:
 
     def add_to_sector(self, item, quantity):
         if self.get_quantity(item):
-            self.item_quantities[item] = self.item_quantities.get(item, 0) + quantity
+            self.item_quantities[item] += quantity
         else:
             self.item_quantities[item] = quantity
 
@@ -30,7 +30,7 @@ class Sector:
             raise Exception("invalid quantity")
 
         if quantity > self.get_quantity(item):
-            raise Exception("Sector didn't have this much quantity")
+            raise Exception("Sector didn't have this much quantity", self.total_size)
 
         self.item_quantities[item] -= quantity
         if self.item_quantities[item] == 0:

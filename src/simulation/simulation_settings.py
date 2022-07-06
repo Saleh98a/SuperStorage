@@ -17,6 +17,7 @@ class ExtractAlgorithm(Enum):
     NAIVE = 1
     OPTIMIZED = 2
 
+
 class SimulationSettings:
     def __init__(self,
                  insert_algo=InsertAlgorithm.NAIVE,
