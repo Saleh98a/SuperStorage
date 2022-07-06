@@ -2,13 +2,11 @@
 Simulator Class
 Runs a storage environment simulation
 """
-from datetime import time
 from timeit import default_timer
 
 from random import randint
 
 from src.models.container import Container
-from src.models.order import Order
 from src.models.package import Package
 from src.models.product import Product
 

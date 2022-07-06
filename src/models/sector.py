@@ -49,11 +49,15 @@ class Sector:
     def build_sector(min_dist, max_dist, shelves_num, storage_rows, storage_racks_per_row):
         positions = []
         for i in range(max_dist + 1):
-            for j in range(max_dist + 1):
+            if i >= storage_rows:
+                break
+            for j in range(min_dist - i, max_dist + 1 - i):
+                if j >= storage_racks_per_row:
+                    break
+                # We know for sure now that distance is in range
+                # distance = i + j
+                # if min_dist <= distance <= max_dist:
                 for k in range(shelves_num):
-                    distance = i+j
-                    if min_dist <= distance <= max_dist:
-                        if i < storage_rows and j < storage_racks_per_row:
-                            position = SSPosition(i, j, k)
-                            positions.append(position)
+                    position = SSPosition(i, j, k)
+                    positions.append(position)
         return Sector(positions)

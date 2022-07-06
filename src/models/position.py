@@ -7,7 +7,6 @@ from abc import ABC, abstractmethod
 
 
 class Position(ABC):
-    # empty class
     def __init__(self):
         pass
 
@@ -24,4 +23,3 @@ class SSPosition(Position):
 
     def __hash__(self):
         return hash(repr(self))
-
