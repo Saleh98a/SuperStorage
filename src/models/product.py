@@ -14,3 +14,9 @@ class Product:
 
     def __hash__(self) -> int:
         return self.name.__hash__()
+
+
+class ProductInfo:
+    def __init__(self, frequency=0, size_percentage=0):
+        self.frequency = frequency
+        self.size_percentage = size_percentage

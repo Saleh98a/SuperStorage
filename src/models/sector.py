@@ -21,7 +21,7 @@ class Sector:
 
     def add_to_sector(self, item, quantity):
         if self.get_quantity(item):
-            self.item_quantities[item] = self.item_quantities.get(item, 0) + quantity
+            self.item_quantities[item] += quantity
         else:
             self.item_quantities[item] = quantity
 
@@ -30,23 +30,11 @@ class Sector:
             raise Exception("invalid quantity")
 
         if quantity > self.get_quantity(item):
-            raise Exception("Sector didn't have this much quantity")
+            raise Exception("Sector didn't have this much quantity", self.total_size)
 
         self.item_quantities[item] -= quantity
         if self.item_quantities[item] == 0:
             self.item_quantities.pop(item)
-
-    def __iter__(self):
-        self.current_pos = 0
-        return self.positions[self.current_pos]
-
-    def __next__(self):
-        if self.current_pos == len(self.positions):
-            raise StopIteration
-        temp = self.positions[self.current_pos]
-        self.current_pos += 1
-        return temp
-
 
     @staticmethod
     def check_if_in_range(row, col, min_dist, max_dist):
@@ -60,11 +48,16 @@ class Sector:
     @staticmethod
     def build_sector(min_dist, max_dist, shelves_num, storage_rows, storage_racks_per_row):
         positions = []
-        for k in range(max_dist + 1):
-            for j in range(k + 1):
-                i = k - j
-                if i < storage_rows and j < storage_racks_per_row:
-                    if Sector.check_if_in_range(i, j, min_dist, max_dist):
-                        for shelf_num in range(shelves_num):
-                            positions.append(SSPosition(i, j, shelf_num))
+        for i in range(max_dist + 1):
+            if i >= storage_rows:
+                break
+            for j in range(min_dist - i, max_dist + 1 - i):
+                if j >= storage_racks_per_row:
+                    break
+                # We know for sure now that distance is in range
+                # distance = i + j
+                # if min_dist <= distance <= max_dist:
+                for k in range(shelves_num):
+                    position = SSPosition(i, j, k)
+                    positions.append(position)
         return Sector(positions)

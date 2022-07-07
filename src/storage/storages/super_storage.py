@@ -54,11 +54,17 @@ class SuperStorage(Storage):
         self.racks[position.row][position.col].used_size -= extracted_quantity * product.size
 
         if extracted_quantity <= quantity and not extracted_quantity == 0:
-            self.items_map[product].remove(position)
+            for position_to_check in self.items_map[product]:
+                if position_to_check.row == position.row \
+                        and position_to_check.col == position.col \
+                        and position_to_check.shelf_num == position.shelf_num:
+                    self.items_map[product].remove(position_to_check)
+                    # TODO: what happens if we have multiple items of the same kind in same position?
+                    break
         return extracted_quantity
 
     def calculate_forklift_cost(self, forklift, position):
-        # do not forget to multiply with the horizontal\vertical coef
+        # Don't forget to multiply with the horizontal and vertical coefficient
         if forklift.position.row == position.row:
             return abs(forklift.position.col - position.col) + abs(position.shelf_num - forklift.position.shelf_num)
         return abs(forklift.position.row - position.row) + \
@@ -95,8 +101,8 @@ class SuperStorage(Storage):
                     i += 1
                     if shelf.is_used():
                         maximum_shelf = i
-                        wasted_space += (shelf.size - shelf.used_size)*100/shelf.size
-        return wasted_space/maximum_shelf
+                        wasted_space += (shelf.size - shelf.used_size) * 100 / shelf.size
+        return wasted_space / maximum_shelf
 
     def __iter__(self):
         self.iter_pos = SSPosition(0, 0, 0)
