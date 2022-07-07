@@ -7,7 +7,6 @@ from abc import ABC, abstractmethod
 
 
 class Position(ABC):
-    # empty class
     def __init__(self):
         pass
 
@@ -22,4 +21,5 @@ class SSPosition(Position):
     def __eq__(self, other):
         return self.row == other.row and self.col == other.col and self.shelf_num == other.shelf_num
 
-
+    def __hash__(self):
+        return hash(repr(self))

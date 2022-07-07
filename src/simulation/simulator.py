@@ -2,13 +2,11 @@
 Simulator Class
 Runs a storage environment simulation
 """
-from datetime import time
 from timeit import default_timer
 
 from random import randint
 
 from src.models.container import Container
-from src.models.order import Order
 from src.models.package import Package
 from src.models.product import Product
 
@@ -126,7 +124,7 @@ def initialize_products():
     products = []
     i = 0
     for name in product_names:
-        products.append(Product(i, name, 0, randint(15, 40), 'cat'))  # TODO: change
+        products.append(Product(i, name, 0, randint(10, 30), 'cat'))  # TODO: change quantity and category
         i += 1
     return products
 

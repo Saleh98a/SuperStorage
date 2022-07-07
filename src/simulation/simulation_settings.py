@@ -10,6 +10,7 @@ from src.storage.storages.storage_settings import StorageSettings
 class InsertAlgorithm(Enum):
     NAIVE = 1
     KNAPSACK = 2
+    OPTIMIZED = 3
 
     def __str__(self):
         if self is InsertAlgorithm.NAIVE:
@@ -24,6 +25,7 @@ class InsertAlgorithm(Enum):
 
 class ExtractAlgorithm(Enum):
     NAIVE = 1
+    OPTIMIZED = 2
 
 
     def __str__(self):
