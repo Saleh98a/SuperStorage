@@ -73,7 +73,7 @@ def extract_naive(storage, forklift, order):
     positions_iter = iter(storage)
     for product in order:  # TODO: removing from order might cause us some problems
         for position in positions_iter:
-            ordered_quantity = order.get_order(product)
+            ordered_quantity = order.get_product_quantity(product)
             current_quantity = storage.get_item_quantity_at(product, position)
             quantity_to_extract = min(ordered_quantity, current_quantity)
             extracted_quantity = storage.extract_product(forklift, product, quantity_to_extract, position)

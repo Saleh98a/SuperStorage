@@ -2,15 +2,16 @@
 Simulator Class
 Runs a storage environment simulation
 """
+from time import sleep
 from timeit import default_timer
-
 from random import randint
+import numpy as np
+import matplotlib.pyplot as plt
 
 from src.models.container import Container
+from src.models.order import Order
 from src.models.package import Package
-from src.models.product import Product
-
-import matplotlib.pyplot as plt
+from src.models.product import Product, ProductInfo
 
 from src.storage.managers.storage_manager import StorageManager
 from src.storage.storages.super_storage import SuperStorage
@@ -142,17 +143,94 @@ def initialize_containers(products, containers_num, packages_num_per_container, 
     return containers
 
 
+def get_exponential_list(exponential_lambda, products_num, size):
+    product_id_list = np.random.exponential(exponential_lambda, size)
+    for i in range(size):
+        while product_id_list[i] < 0 or product_id_list[i] >= products_num:
+            product_id_list[i] = int(np.random.exponential(exponential_lambda))
+    return product_id_list.astype(int)
+
+
+def draw_orders(products, orders_count):
+    """
+    Distributions:
+        - Each product quantity: Poisson Distribution
+            Parameter: Lambda = quantities_lambda[i] (Chosen randomly from 1-5 incl.)
+
+        - Picking the product: Exponential Distribution (not critical)
+            Parameter: Lambda = exponential_lambda (Chosen randomly from 30-80 incl.)
+
+
+    """
+    quantity_lambda_list = [3 for _ in range(len(products))]  # TODO revert this to randint(1,5)
+    exponential_lambda = 40  # TODO revert this to randint(30,80)
+    order_len_list = np.random.randint(1, 50, orders_count)
+
+    # print("Printing order len list")
+    # for i in range(len(order_len_list)):
+    #     print(order_len_list[i])
+
+    #print("order len list sum", order_len_list.sum())
+    product_id_list = get_exponential_list(exponential_lambda, len(products), order_len_list.sum())
+
+    idx = 0
+    orders = [Order() for _ in range(orders_count)]
+    for order, order_len in zip(orders, order_len_list):
+        for _ in range(order_len):
+            prod_id = product_id_list[idx]
+            quantity_lambda = quantity_lambda_list[prod_id]
+            quantity = int(np.random.poisson(quantity_lambda))
+            #print("Addition of id", prod_id, "Quantity", quantity)
+            order.add_to_order(products[prod_id], quantity)
+            idx += 1
+    return orders
+
+
+def learn(products, total_orders):
+    print("---------------Learning---------------")
+    products_num = len(products)
+
+    orders = draw_orders(products, total_orders)
+
+    # Get total size & total orders of each product
+    total_size = 0
+    total_size_of_product = [0 for _ in range(products_num)]
+    total_orders_of_product = [0 for _ in range(products_num)]
+    for order in orders:
+        current_order_products = [False for _ in range(products_num)]
+        for product in order.item_orders:
+            if not current_order_products[product.id]:
+                total_orders_of_product[product.id] += 1
+            current_order_products[product.id] = True
+            total_size_of_product[product.id] += order.get_product_quantity(product) * product.size
+            total_size += order.get_product_quantity(product) * product.size
+
+    # Calculate frequency & size percentage of each product
+    products_info = []
+    for i in range(products_num):
+        frequency = total_orders_of_product[i] / total_orders
+        size_percentage = total_size_of_product[i] / total_size
+        current_info = ProductInfo(frequency, size_percentage)
+        products_info.append(current_info)
+    print("---------------Done learning---------------")
+    return products_info
+
+
 class Simulator:
     def __init__(self, simulation_settings=SimulationSettings()):
         self.simulation_settings = simulation_settings
         self.containers_num = self.simulation_settings.containers_num
         self.repetitions_num = self.simulation_settings.repetitions_num
-        # self.graphs = {'Fragmentation': [0 for _ in range(0, self.containers_num)],
-        #                'Cost': [0 for _ in range(0, self.containers_num)],
-        #                'Runtime': [0 for _ in range(0, self.containers_num)]}
         self.curr_fragmentation = 0
         self.curr_cost = 0
         self.curr_runtime = 0
+
+        self.products = initialize_products()
+        self.containers = initialize_containers(self.products,
+                                                self.simulation_settings.containers_num,
+                                                self.simulation_settings.packages_per_container,
+                                                self.simulation_settings.storage_settings.shelf_size)
+        self.learned_info = learn(self.products, 3)
 
         self.storage_managers = []
         self.graphs = {'Fragmentation': {},
@@ -161,9 +239,10 @@ class Simulator:
         for insert in simulation_settings.insert:
             for extract in simulation_settings.extract:
                 # TODO: change SuperStorage(), maybe take it from simulation settings
-                storage_manager = StorageManager(SuperStorage(), insert, extract)
+                storage_manager = StorageManager(SuperStorage(self.simulation_settings.storage_settings),
+                                                 insert,
+                                                 extract)
                 self.storage_managers.append(storage_manager)
-                # print(storage_manager.specifier())
                 for graph in self.graphs:
                     self.graphs[graph][storage_manager.specifier()] = [0 for _ in range(0, self.containers_num)]
 
@@ -185,7 +264,8 @@ class Simulator:
             self.create_graph(axs[-1],
                               list(range(1, self.containers_num + 1)),
                               # Calculates average over repetitions
-                              [[y / repetition for y in self.graphs[graph_name][manager]] for manager in self.graphs[graph_name]],
+                              [[y / repetition for y in self.graphs[graph_name][manager]] for manager in
+                               self.graphs[graph_name]],
                               [manager for manager in self.graphs[graph_name]],
                               graph_name)
             i += 1
@@ -206,11 +286,6 @@ class Simulator:
         self.curr_runtime = 0
 
     def simulate(self):
-        products = initialize_products()
-        containers = initialize_containers(products,
-                                           self.simulation_settings.containers_num,
-                                           self.simulation_settings.packages_per_container,
-                                           self.simulation_settings.storage_settings.shelf_size)
         # Print data
         print(self)
 
@@ -227,7 +302,7 @@ class Simulator:
                 for storage_manager in self.storage_managers:
                     # Insert the container
                     time1 = default_timer()
-                    storage_manager.insert_container(containers[chosen_container])
+                    storage_manager.insert_container(self.containers[chosen_container])
                     time2 = default_timer()
 
                     # Update Costs
