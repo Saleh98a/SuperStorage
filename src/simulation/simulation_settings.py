@@ -16,7 +16,7 @@ class InsertAlgorithm(Enum):
         if self is InsertAlgorithm.NAIVE:
             return "Insert:Naive"
         if self is InsertAlgorithm.KNAPSACK:
-            return "Insert:Knap"
+            return "Insert:Knapsack"
         if self is InsertAlgorithm.OPTIMIZED:
             return "Insert:Optimized"
         else:
@@ -27,7 +27,6 @@ class ExtractAlgorithm(Enum):
     NAIVE = 1
     OPTIMIZED = 2
 
-
     def __str__(self):
         if self is ExtractAlgorithm.NAIVE:
             return "Extract:Naive"
@@ -35,6 +34,7 @@ class ExtractAlgorithm(Enum):
             return "Extract:Optimized"
         else:
             raise Exception("Undefined ExtractAlgorithm")
+
 
 class SimulationSettings:
     def __init__(self,

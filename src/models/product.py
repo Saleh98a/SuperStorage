@@ -15,6 +15,12 @@ class Product:
     def __hash__(self) -> int:
         return self.name.__hash__()
 
+    def __str__(self) -> str:
+        return "Product ID: " + str(self.id) + " Name: " + str(self.name) + " Size: " + str(self.size)
+
+    def __lt__(self, other):
+        return self.id < other.id
+
 
 class ProductInfo:
     def __init__(self, frequency=0, size_percentage=0):
