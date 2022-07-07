@@ -12,22 +12,44 @@ class InsertAlgorithm(Enum):
     KNAPSACK = 2
     OPTIMIZED = 3
 
+    def __str__(self):
+        if self is InsertAlgorithm.NAIVE:
+            return "Insert:Naive"
+        if self is InsertAlgorithm.KNAPSACK:
+            return "Insert:Knap"
+        if self is InsertAlgorithm.OPTIMIZED:
+            return "Insert:Optimized"
+        else:
+            raise Exception("Undefined InsertAlgorithm")
+
 
 class ExtractAlgorithm(Enum):
     NAIVE = 1
     OPTIMIZED = 2
 
 
+    def __str__(self):
+        if self is ExtractAlgorithm.NAIVE:
+            return "Extract:Naive"
+        if self is ExtractAlgorithm.OPTIMIZED:
+            return "Extract:Optimized"
+        else:
+            raise Exception("Undefined ExtractAlgorithm")
+
 class SimulationSettings:
     def __init__(self,
-                 insert_algo=InsertAlgorithm.NAIVE,
-                 extract_algo=ExtractAlgorithm.NAIVE,
+                 insert_algo=None,
+                 extract_algo=None,
                  storage_settings=StorageSettings(),
                  insertion_only=True,
                  interlapping=False,
                  repetitions_num=30,
                  containers_num=100,
                  packages_per_container=40):
+        if insert_algo is None:
+            insert_algo = [InsertAlgorithm.NAIVE, InsertAlgorithm.KNAPSACK]#, InsertAlgorithm.OPTIMIZED]
+        if extract_algo is None:
+            extract_algo = [ExtractAlgorithm.NAIVE]#, ExtractAlgorithm.OPTIMIZED]
         self.storage_settings = storage_settings
         self.insert = insert_algo
         self.extract = extract_algo

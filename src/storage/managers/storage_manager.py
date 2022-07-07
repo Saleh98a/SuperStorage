@@ -152,3 +152,6 @@ class StorageManager:
 
     def reset_storage(self):
         self.storage = SuperStorage(self.storage.storage_settings)
+
+    def specifier(self):
+        return str(self.insert_algorithm) + " " + str(self.extract_algorithm)
