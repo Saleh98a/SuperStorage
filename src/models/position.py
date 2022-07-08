@@ -22,4 +22,7 @@ class SSPosition(Position):
         return self.row == other.row and self.col == other.col and self.shelf_num == other.shelf_num
 
     def __hash__(self):
-        return hash(repr(self))
+        return hash(str(self))
+
+    def __str__(self):
+        return f'{self.row}, {self.col}, {self.shelf_num}'

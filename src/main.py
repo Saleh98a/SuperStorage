@@ -29,7 +29,7 @@ def my_main():
         manager.insert_container(third_container)
     """
     sim2 = Simulator(
-        SimulationSettings(insert_algo=[InsertAlgorithm.NAIVE, InsertAlgorithm.OPTIMIZED, InsertAlgorithm.KNAPSACK],
+        SimulationSettings(insert_algo=[InsertAlgorithm.NAIVE, InsertAlgorithm.KNAPSACK, InsertAlgorithm.OPTIMIZED],
                            #extract_algo=[ExtractAlgorithm.NAIVE],
                            containers_num=2,
                            repetitions_num=10))

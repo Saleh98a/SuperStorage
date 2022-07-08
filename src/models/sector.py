@@ -51,7 +51,7 @@ class Sector:
         for i in range(max_dist + 1):
             if i >= storage_rows:
                 break
-            for j in range(min_dist - i, max_dist + 1 - i):
+            for j in range(max(min_dist - i, 0), max_dist + 1 - i):
                 if j >= storage_racks_per_row:
                     break
                 # We know for sure now that distance is in range
@@ -61,3 +61,9 @@ class Sector:
                     position = SSPosition(i, j, k)
                     positions.append(position)
         return Sector(positions)
+
+    def __iter__(self):
+        return iter(self.positions)
+
+    def __next__(self):
+        return next(self.positions)
