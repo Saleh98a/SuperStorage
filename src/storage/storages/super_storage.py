@@ -92,7 +92,7 @@ class SuperStorage(Storage):
         return self.racks[position.row][position.col].shelves[position.shelf_num].can_put_package(package)
 
     def get_fragmentation(self):
-        maximum_shelf = 0
+        used_shelves = 0
         i = 0
         wasted_space = 0
         for row in range(self.storage_settings.rows):
@@ -100,9 +100,11 @@ class SuperStorage(Storage):
                 for shelf in self.racks[row][col].shelves:
                     i += 1
                     if shelf.is_used():
-                        maximum_shelf = i
+                        used_shelves += 1
                         wasted_space += (shelf.size - shelf.used_size) * 100 / shelf.size
-        return wasted_space / maximum_shelf
+        if used_shelves == 0:
+            return 0
+        return wasted_space / used_shelves
 
     def __iter__(self):
         self.iter_pos = SSPosition(0, 0, 0)

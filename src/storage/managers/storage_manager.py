@@ -57,9 +57,10 @@ class StorageManager:
                                      self.storage.storage_settings.racks_per_row)
         self.products_info = learned_info
         self.top_level_percentage = most_frequent_percentage(learned_info)
-        for i in range(len(learned_info)):
-            if self.top_level_percentage[i] != 0:
-                print("product number", i, "top level frequency=", self.top_level_percentage[i])
+        if insert_algo == InsertAlgorithm.OPTIMIZED or extract_algo == ExtractAlgorithm.OPTIMIZED:
+            for i in range(len(learned_info)):
+                if self.top_level_percentage[i] != 0:
+                    print("product number", i, "top level frequency=", self.top_level_percentage[i])
 
     def insert_container(self, container):
         # TODO: Check if package size is bigger than shelf size

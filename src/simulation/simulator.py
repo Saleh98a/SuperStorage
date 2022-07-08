@@ -119,14 +119,12 @@ def initialize_products():
         'Piping',
         'Tool',
         'Weights',
-        'Stam'
+        'Airpods'
     ]
 
     products = []
-    i = 0
-    for name in product_names:
-        products.append(Product(i, name, 0, randint(10, 30), 'cat'))  # TODO: change quantity and category
-        i += 1
+    for i in range(len(product_names)):
+        products.append(Product(i, product_names[i], 0, randint(10, 30), 'cat'))  # TODO: change weight and category
     return products
 
 
@@ -230,7 +228,7 @@ class Simulator:
                                                 self.simulation_settings.containers_num,
                                                 self.simulation_settings.packages_per_container,
                                                 self.simulation_settings.storage_settings.shelf_size)
-        self.learned_info = learn(self.products, 3)
+        self.learned_info = learn(self.products, 500)
 
         self.storage_managers = []
         self.graphs = {'Fragmentation': {},
@@ -241,7 +239,9 @@ class Simulator:
                 # TODO: change SuperStorage(), maybe take it from simulation settings
                 storage_manager = StorageManager(SuperStorage(self.simulation_settings.storage_settings),
                                                  insert,
-                                                 extract)
+                                                 extract,
+                                                 [2, 5, 8],
+                                                 self.learned_info)
                 self.storage_managers.append(storage_manager)
                 for graph in self.graphs:
                     self.graphs[graph][storage_manager.specifier()] = [0 for _ in range(0, self.containers_num)]
@@ -253,7 +253,7 @@ class Simulator:
             curr_ax.plot(x, y, label=yname)
         curr_ax.set(ylabel=ylabel)
         curr_ax.label_outer()
-        curr_ax.set_xlim([1, self.containers_num])  # TODO: change to containers num
+        curr_ax.set_xlim([1, self.containers_num])  # TODO: check why doesnt work on 1
 
     def print_plots(self, repetition):
         fig = plt.figure()
@@ -294,7 +294,7 @@ class Simulator:
                 storage_manager.reset_storage()
             self.reset_costs()
 
-            print("Inserting 100 Containers")
+            print("Inserting", self.containers_num, "Containers")
             for curr_container in range(0, self.containers_num):
                 # Choose a random container
                 chosen_container = randint(0, self.containers_num - 1)
