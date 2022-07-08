@@ -38,7 +38,7 @@ class Order:
     def __str__(self):
         ret = "Order: \n"
         for product in sorted(self.item_orders):
-            ret += "    " + str(product) + "\n"
+            ret += "    " + str(product) + "\tQuantity: " + str(self.item_orders[product]) + "\n"
         return ret
 
     def __iter__(self):

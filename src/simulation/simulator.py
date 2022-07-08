@@ -2,6 +2,7 @@
 Simulator Class
 Runs a storage environment simulation
 """
+import math
 from time import sleep
 from timeit import default_timer
 from random import randint
@@ -168,7 +169,7 @@ def draw_orders(products, orders_count):
     # for i in range(len(order_len_list)):
     #     print(order_len_list[i])
 
-    #print("order len list sum", order_len_list.sum())
+    # print("order len list sum", order_len_list.sum())
     product_id_list = get_exponential_list(exponential_lambda, len(products), order_len_list.sum())
 
     idx = 0
@@ -178,10 +179,51 @@ def draw_orders(products, orders_count):
             prod_id = product_id_list[idx]
             quantity_lambda = quantity_lambda_list[prod_id]
             quantity = int(np.random.poisson(quantity_lambda))
-            #print("Addition of id", prod_id, "Quantity", quantity)
+            # print("Addition of id", prod_id, "Quantity", quantity)
             order.add_to_order(products[prod_id], quantity)
             idx += 1
     return orders
+
+
+def draw_containers(products, containers_count, package_max_size):
+    """
+    Distributions:
+        - Each product quantity: Poisson Distribution
+            Parameter: Lambda = quantities_lambda[i] (Chosen randomly from 1-5 incl.)
+
+        - Picking the product: Exponential Distribution (not critical)
+            Parameter: Lambda = exponential_lambda (Chosen randomly from 30-80 incl.)
+
+
+    """
+    quantity_lambda_list = [3 for _ in range(len(products))]  # TODO revert this to randint(1,5)
+    exponential_lambda = 40  # TODO revert this to randint(30,80)
+    container_len_list = np.random.randint(1, 50, containers_count)
+
+    # print("Printing order len list")
+    # for i in range(len(order_len_list)):
+    #     print(order_len_list[i])
+
+    # print("order len list sum", order_len_list.sum())
+    product_id_list = get_exponential_list(exponential_lambda, len(products), container_len_list.sum())
+
+    idx = 0
+    containers_list = [Container() for _ in range(containers_count)]
+    for container, container_len in zip(containers_list, container_len_list):
+        for _ in range(container_len):
+            prod_id = product_id_list[idx]
+            quantity_lambda = quantity_lambda_list[prod_id]
+            quantity = int(np.random.poisson(quantity_lambda))
+            # print("Addition of id", prod_id, "Quantity", quantity)
+            product = products[prod_id]
+            max_quantity_per_package = package_max_size // product.size
+            num_of_packages = math.ceil(quantity / max_quantity_per_package)
+            for _ in range(num_of_packages):
+                quantity_in_package = min(max_quantity_per_package, quantity)
+                container.add_package(Package(products[prod_id], quantity_in_package))
+                quantity -= quantity_in_package
+            idx += 1
+    return containers_list
 
 
 def learn(products, total_orders):
@@ -214,6 +256,13 @@ def learn(products, total_orders):
     return products_info
 
 
+def fix_order(storage, order):
+    fixed_order = Order()
+    for product in order.item_orders:
+        fixed_order.add_to_order(product, min(order.item_orders[product], storage.get_item_quantity(product)))
+    return fixed_order
+
+
 class Simulator:
     def __init__(self, simulation_settings=SimulationSettings()):
         self.simulation_settings = simulation_settings
@@ -224,10 +273,14 @@ class Simulator:
         self.curr_runtime = 0
 
         self.products = initialize_products()
-        self.containers = initialize_containers(self.products,
-                                                self.simulation_settings.containers_num,
-                                                self.simulation_settings.packages_per_container,
-                                                self.simulation_settings.storage_settings.shelf_size)
+        # self.containers = initialize_containers(self.products,
+        #                                         self.simulation_settings.containers_num,
+        #                                         self.simulation_settings.packages_per_container,
+        #                                         self.simulation_settings.storage_settings.shelf_size)
+        self.containers = draw_containers(self.products,
+                                          self.simulation_settings.containers_num,
+                                          self.simulation_settings.storage_settings.shelf_size)
+        self.orders = draw_orders(self.products, self.simulation_settings.containers_num)
         self.learned_info = learn(self.products, 500)
 
         self.storage_managers = []
@@ -302,7 +355,11 @@ class Simulator:
                 for storage_manager in self.storage_managers:
                     # Insert the container
                     time1 = default_timer()
-                    storage_manager.insert_container(self.containers[chosen_container])
+                    if curr_container % 3 != 2:
+                        storage_manager.insert_container(self.containers[chosen_container])
+                    else:
+                        order = fix_order(storage_manager.storage, self.orders[chosen_container])
+                        storage_manager.extract_order(order)
                     time2 = default_timer()
 
                     # Update Costs

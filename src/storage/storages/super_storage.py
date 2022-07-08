@@ -24,7 +24,8 @@ class SuperStorage(Storage):
         self.num_of_racks = storage_settings.rows * storage_settings.racks_per_row
         self.racks = [[Rack(shelves_per_rack, shelf_size) for _ in range(racks_per_row)] for _ in range(rows)]
         # additional info
-        self.items_map = {}
+        self.items_positions_map = {}
+        self.items_quantities_map = {}
         self.total_cost = 0
 
     def get_shelf(self, position):
@@ -35,12 +36,12 @@ class SuperStorage(Storage):
         self.racks[position.row][position.col].shelves[position.shelf_num].put_package(package)
 
         # save/update additional info
-        # self.items_map[package.product.name] = self.items_map.get(package.product.name, default=[]).append(position)
         self.racks[position.row][position.col].used_size += package.size()
 
-        if package.product not in self.items_map:
-            self.items_map[package.product] = []
-        self.items_map[package.product].append(position)
+        if package.product not in self.items_positions_map:
+            self.items_positions_map[package.product] = []
+        self.items_positions_map[package.product].append(position)
+        self.items_quantities_map[package.product] = self.items_quantities_map.get(package.product, 0) + package.quantity
 
     def extract_product(self, forklift, product, quantity, position=None):
         self.move_forklift(forklift, position)
@@ -54,13 +55,12 @@ class SuperStorage(Storage):
         self.racks[position.row][position.col].used_size -= extracted_quantity * product.size
 
         if extracted_quantity <= quantity and not extracted_quantity == 0:
-            for position_to_check in self.items_map[product]:
-                if position_to_check.row == position.row \
-                        and position_to_check.col == position.col \
-                        and position_to_check.shelf_num == position.shelf_num:
-                    self.items_map[product].remove(position_to_check)
+            for position_to_check in self.items_positions_map[product]:
+                if position_to_check == position:
+                    self.items_positions_map[product].remove(position_to_check)
                     # TODO: what happens if we have multiple items of the same kind in same position?
                     break
+        self.items_quantities_map[product] = self.items_quantities_map.get(product, 0) - quantity
         return extracted_quantity
 
     def calculate_forklift_cost(self, forklift, position):
@@ -87,6 +87,9 @@ class SuperStorage(Storage):
     def get_item_quantity_at(self, item, position):
         item_quantities = self.racks[position.row][position.col].shelves[position.shelf_num].item_quantities
         return item_quantities.get(item, 0)
+
+    def get_item_quantity(self, item):
+        return self.items_quantities_map.get(item, 0)
 
     def can_put_package_at(self, package, position):
         return self.racks[position.row][position.col].shelves[position.shelf_num].can_put_package(package)

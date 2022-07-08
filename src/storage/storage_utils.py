@@ -83,7 +83,9 @@ def extract_naive(storage, forklift, order):
             order.remove_from_order(product, extracted_quantity)
             if extracted_quantity == ordered_quantity:
                 break
-    return order.empty()
+    if not order.empty():
+        raise Exception(f"Storage can't fulfill order: { order }")
+    return True
 
 
 def insert_knapsack(storage, forklift, container):
@@ -226,7 +228,7 @@ def extract_optimized(storage_manager, forklift, order):
             if position in position_actions.keys():
                 for (product, quantity) in position_actions[position]:
                     sector.remove_from_sector(product, quantity)
-
+    """
     # TODO: remove the code below' this is just for tests
     storage_quantity = [0 for _ in range(100)]
     for row in storage_manager.storage.racks:
@@ -242,6 +244,7 @@ def extract_optimized(storage_manager, forklift, order):
         all_products_quantity += storage_quantity[i]
     #print("#printing quantity of all products in storage:-")
     #print(all_products_quantity)
+    """
 
 
 def knapsack_shelf(storage, packages, position):
