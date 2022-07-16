@@ -199,11 +199,10 @@ def draw_container(products, package_max_size):
 
 
     """
-    quantity_lambda = 60  # TODO revert this to randint(1,5)
+    quantity_lambda_list = [60 for _ in range(len(products))]  # TODO revert this to randint(...)
     exponential_lambda = 40  # TODO revert this to randint(30,80)
     container_len = np.random.randint(1, 50)
 
-    quantity_lambda_list = [60 for _ in range(len(products))]  # TODO revert this to randint(...)
     product_id_list = get_exponential_list(exponential_lambda, len(products), container_len)
 
     idx = 0
@@ -212,7 +211,6 @@ def draw_container(products, package_max_size):
         prod_id = product_id_list[idx]
         quantity_lambda = quantity_lambda_list[prod_id]
         quantity = int(np.random.poisson(quantity_lambda))
-        # print("Addition of id", prod_id, "Quantity", quantity)
         product = products[prod_id]
         max_quantity_per_package = package_max_size // product.size
         num_of_packages = math.ceil(quantity / max_quantity_per_package)
