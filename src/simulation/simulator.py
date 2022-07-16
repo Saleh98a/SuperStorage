@@ -3,8 +3,7 @@ Simulator Class
 Runs a storage environment simulation
 """
 import math
-from time import sleep
-from timeit import default_timer
+import random
 from random import randint
 import numpy as np
 import matplotlib.pyplot as plt
@@ -150,7 +149,7 @@ def get_exponential_list(exponential_lambda, products_num, size):
     return product_id_list.astype(int)
 
 
-def draw_orders(products, orders_count):
+def draw_order(products):
     """
     Distributions:
         - Each product quantity: Poisson Distribution
@@ -163,67 +162,70 @@ def draw_orders(products, orders_count):
     """
     quantity_lambda_list = [3 for _ in range(len(products))]  # TODO revert this to randint(1,5)
     exponential_lambda = 40  # TODO revert this to randint(30,80)
-    order_len_list = np.random.randint(1, 50, orders_count)
+    order_len = np.random.randint(1, 50)
 
     # print("Printing order len list")
     # for i in range(len(order_len_list)):
     #     print(order_len_list[i])
 
     # print("order len list sum", order_len_list.sum())
-    product_id_list = get_exponential_list(exponential_lambda, len(products), order_len_list.sum())
+    product_id_list = get_exponential_list(exponential_lambda, len(products), order_len)
 
     idx = 0
-    orders = [Order() for _ in range(orders_count)]
-    for order, order_len in zip(orders, order_len_list):
-        for _ in range(order_len):
-            prod_id = product_id_list[idx]
-            quantity_lambda = quantity_lambda_list[prod_id]
-            quantity = int(np.random.poisson(quantity_lambda))
-            # print("Addition of id", prod_id, "Quantity", quantity)
-            order.add_to_order(products[prod_id], quantity)
-            idx += 1
-    return orders
+    order = Order()
+    for _ in range(order_len):
+        prod_id = product_id_list[idx]
+        quantity_lambda = quantity_lambda_list[prod_id]
+        quantity = int(np.random.poisson(quantity_lambda))
+        # print("Addition of id", prod_id, "Quantity", quantity)
+        order.add_to_order(products[prod_id], quantity)
+        idx += 1
 
+    return order
+
+def draw_orders(products, orders_count):
+    return [draw_order(products) for _ in range(orders_count)]
+
+
+
+def draw_container(products, package_max_size):
+    """
+    Distributions:
+        - Each product quantity: Poisson Distribution
+            Parameter: Lambda = quantities_lambda[i] (Chosen randomly from 1-5 incl.)
+
+        - Picking the product: Exponential Distribution (not critical)
+            Parameter: Lambda = exponential_lambda (Chosen randomly from 30-80 incl.)
+
+
+    """
+    quantity_lambda = 60  # TODO revert this to randint(1,5)
+    exponential_lambda = 40  # TODO revert this to randint(30,80)
+    container_len = np.random.randint(1, 50)
+
+    quantity_lambda_list = [60 for _ in range(len(products))]  # TODO revert this to randint(...)
+    product_id_list = get_exponential_list(exponential_lambda, len(products), container_len)
+
+    idx = 0
+    container = Container()
+    for _ in range(container_len):
+        prod_id = product_id_list[idx]
+        quantity_lambda = quantity_lambda_list[prod_id]
+        quantity = int(np.random.poisson(quantity_lambda))
+        # print("Addition of id", prod_id, "Quantity", quantity)
+        product = products[prod_id]
+        max_quantity_per_package = package_max_size // product.size
+        num_of_packages = math.ceil(quantity / max_quantity_per_package)
+        for _ in range(num_of_packages):
+            quantity_in_package = min(max_quantity_per_package, quantity)
+            container.add_package(Package(products[prod_id], quantity_in_package))
+            quantity -= quantity_in_package
+        idx += 1
+
+    return container
 
 def draw_containers(products, containers_count, package_max_size):
-    """
-    Distributions:
-        - Each product quantity: Poisson Distribution
-            Parameter: Lambda = quantities_lambda[i] (Chosen randomly from 1-5 incl.)
-
-        - Picking the product: Exponential Distribution (not critical)
-            Parameter: Lambda = exponential_lambda (Chosen randomly from 30-80 incl.)
-
-
-    """
-    quantity_lambda_list = [3 for _ in range(len(products))]  # TODO revert this to randint(1,5)
-    exponential_lambda = 40  # TODO revert this to randint(30,80)
-    container_len_list = np.random.randint(1, 50, containers_count)
-
-    # print("Printing order len list")
-    # for i in range(len(order_len_list)):
-    #     print(order_len_list[i])
-
-    # print("order len list sum", order_len_list.sum())
-    product_id_list = get_exponential_list(exponential_lambda, len(products), container_len_list.sum())
-
-    idx = 0
-    containers_list = [Container() for _ in range(containers_count)]
-    for container, container_len in zip(containers_list, container_len_list):
-        for _ in range(container_len):
-            prod_id = product_id_list[idx]
-            quantity_lambda = quantity_lambda_list[prod_id]
-            quantity = int(np.random.poisson(quantity_lambda))
-            # print("Addition of id", prod_id, "Quantity", quantity)
-            product = products[prod_id]
-            max_quantity_per_package = package_max_size // product.size
-            num_of_packages = math.ceil(quantity / max_quantity_per_package)
-            for _ in range(num_of_packages):
-                quantity_in_package = min(max_quantity_per_package, quantity)
-                container.add_package(Package(products[prod_id], quantity_in_package))
-                quantity -= quantity_in_package
-            idx += 1
-    return containers_list
+    return [draw_container(products, package_max_size) for _ in range(containers_count)]
 
 
 def learn(products, total_orders):
@@ -259,7 +261,9 @@ def learn(products, total_orders):
 def fix_order(storage, order):
     fixed_order = Order()
     for product in order.item_orders:
-        fixed_order.add_to_order(product, min(order.item_orders[product], storage.get_item_quantity(product)))
+        quantity = min(order.item_orders[product], storage.get_item_quantity(product))
+        if quantity > 0:
+            fixed_order.add_to_order(product, quantity)
     return fixed_order
 
 
@@ -273,20 +277,13 @@ class Simulator:
         self.curr_runtime = 0
 
         self.products = initialize_products()
-        # self.containers = initialize_containers(self.products,
-        #                                         self.simulation_settings.containers_num,
-        #                                         self.simulation_settings.packages_per_container,
-        #                                         self.simulation_settings.storage_settings.shelf_size)
-        self.containers = draw_containers(self.products,
-                                          self.simulation_settings.containers_num,
-                                          self.simulation_settings.storage_settings.shelf_size)
-        self.orders = draw_orders(self.products, self.simulation_settings.containers_num)
         self.learned_info = learn(self.products, 500)
 
         self.storage_managers = []
-        self.graphs = {'Fragmentation': {},
-                       'Cost': {},
-                       'Runtime': {}}
+        self.graphs = {
+            'Fragmentation': {},
+            'Cost': {}
+        }
         for insert in simulation_settings.insert:
             for extract in simulation_settings.extract:
                 # TODO: change SuperStorage(), maybe take it from simulation settings
@@ -342,35 +339,34 @@ class Simulator:
         # Print data
         print(self)
 
+        extraction_probability = 0.05
+
         for repetition in range(self.repetitions_num):  # need to get from simulation settings
             for storage_manager in self.storage_managers:
                 storage_manager.reset_storage()
             self.reset_costs()
 
-            print("Inserting", self.containers_num, "Containers")
             for curr_container in range(0, self.containers_num):
                 # Choose a random container
-                chosen_container = randint(0, self.containers_num - 1)
+                chosen_container = draw_container(products=self.products, package_max_size=self.simulation_settings.storage_settings.shelf_size)
+                chosen_order = draw_order(products=self.products)
+                is_extract = random.random() <= extraction_probability
 
                 for storage_manager in self.storage_managers:
                     # Insert the container
-                    time1 = default_timer()
-                    if curr_container % 3 != 2:
-                        storage_manager.insert_container(self.containers[chosen_container])
+                    if not is_extract:
+                        storage_manager.insert_container(chosen_container)
                     else:
-                        order = fix_order(storage_manager.storage, self.orders[chosen_container])
+                        order = fix_order(storage_manager.storage, chosen_order)
                         storage_manager.extract_order(order)
-                    time2 = default_timer()
 
                     # Update Costs
-                    self.curr_runtime += (time2 - time1)
                     self.curr_fragmentation = storage_manager.get_fragmentation()
                     self.curr_cost = storage_manager.get_total_cost()
 
                     # Update Graphs
                     self.graphs["Fragmentation"][storage_manager.specifier()][curr_container] += self.curr_fragmentation
                     self.graphs["Cost"][storage_manager.specifier()][curr_container] += self.curr_cost
-                    self.graphs["Runtime"][storage_manager.specifier()][curr_container] += self.curr_runtime
 
             # Print Graphs in every repetition
             self.print_plots(repetition + 1)

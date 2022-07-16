@@ -190,10 +190,6 @@ def get_product_positions(product, quantity, storage_manager):
                 positions_quantity.append((position, current_quantity))
 
     if storage_quantity < quantity:
-        #print("******************")
-        #print("storage quantity=", storage_quantity, "product ID=", product.id)
-        #print("needed quantity=", quantity)
-        #print("******************")
         raise Exception("not all the order are in the sotrage,")
 
     first_quantity = storage_manager.storage.get_item_quantity_at(product, positions_quantity[0][0])
@@ -228,24 +224,6 @@ def extract_optimized(storage_manager, forklift, order):
             if position in position_actions.keys():
                 for (product, quantity) in position_actions[position]:
                     sector.remove_from_sector(product, quantity)
-    """
-    # TODO: remove the code below' this is just for tests
-    storage_quantity = [0 for _ in range(100)]
-    for row in storage_manager.storage.racks:
-        for rack in row:
-            for shelf in rack.shelves:
-                for product in shelf.item_quantities.keys():
-                    storage_quantity[product.id] += shelf.item_quantities[product]
-    #print("extraction completed successfully")
-    #print("#printing all quantities in our storage after the extraction")
-    all_products_quantity = 0
-    for i in range(len(storage_quantity)):
-        # #print("product ID=", i, "storage quantity=", storage_quantity[i])
-        all_products_quantity += storage_quantity[i]
-    #print("#printing quantity of all products in storage:-")
-    #print(all_products_quantity)
-    """
-
 
 def knapsack_shelf(storage, packages, position):
     shelf = storage.get_shelf(position)

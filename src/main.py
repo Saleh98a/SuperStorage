@@ -30,8 +30,8 @@ def my_main():
     """
     sim2 = Simulator(
         SimulationSettings(insert_algo=[InsertAlgorithm.NAIVE, InsertAlgorithm.KNAPSACK, InsertAlgorithm.OPTIMIZED],
-                           extract_algo=[ExtractAlgorithm.NAIVE, ExtractAlgorithm.OPTIMIZED],
-                           containers_num=20,
+                           extract_algo=[ExtractAlgorithm.NAIVE],
+                           containers_num=10,
                            repetitions_num=10))
     sim2.simulate()
 

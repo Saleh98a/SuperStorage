@@ -1,9 +1,6 @@
 """
 Storage Manager class/interface
 """
-from random import randint
-
-import numpy as np
 
 from src.models.sector import Sector
 from src.models.forklift import SSForklift
