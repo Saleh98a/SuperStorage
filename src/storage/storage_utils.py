@@ -219,12 +219,6 @@ def extract_optimized(storage_manager, forklift, order):
         for (product, quantity) in position_actions[position]:
             storage_manager.storage.extract_product(forklift, product, quantity, position)
 
-    for sector in storage_manager.sectors:
-        for position in sector.positions:
-            if position in position_actions.keys():
-                for (product, quantity) in position_actions[position]:
-                    sector.remove_from_sector(product, quantity)
-
 def knapsack_shelf(storage, packages, position):
     shelf = storage.get_shelf(position)
     free_size = shelf.size - shelf.used_size

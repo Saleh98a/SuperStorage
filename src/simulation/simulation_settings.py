@@ -44,7 +44,7 @@ class SimulationSettings:
                  insertion_only=True,
                  interlapping=False,
                  repetitions_num=30,
-                 containers_num=100,
+                 operations_num=100,
                  packages_per_container=40):
         if insert_algo is None:
             insert_algo = [InsertAlgorithm.NAIVE, InsertAlgorithm.KNAPSACK]#, InsertAlgorithm.OPTIMIZED]
@@ -56,13 +56,13 @@ class SimulationSettings:
         self.insertion_only = insertion_only
         self.interlapping = interlapping
         self.repetitions_num = repetitions_num
-        self.containers_num = containers_num
+        self.operations_num = operations_num
         self.packages_per_container = packages_per_container
 
     def __str__(self):
         return str(self.storage_settings) + \
                "Repetitions Num: " + str(self.repetitions_num) + "\n" + \
-               "Containers Num: " + str(self.containers_num) + "\n" + \
+               "Operations per Simulation Num: " + str(self.operations_num) + "\n" + \
                "Packages Per Container: " + str(self.packages_per_container)
 
 

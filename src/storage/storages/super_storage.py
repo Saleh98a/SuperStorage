@@ -1,17 +1,16 @@
 """
 Our Storage Implementation
 """
-
+from src.events.event_bus import EventBus
 from src.storage.storages.storage import Storage
 from src.storage.storages.storage_settings import StorageSettings
-# from src.models.index import Rack, SSForklift, SSPosition
 from src.models.rack import Rack
 from src.models.forklift import SSForklift
 from src.models.position import SSPosition
 
 
 class SuperStorage(Storage):
-    def __init__(self, storage_settings=StorageSettings()):
+    def __init__(self, storage_settings=StorageSettings(), event_bus=None):
         super().__init__()
         self.storage_settings = storage_settings
 
@@ -28,6 +27,8 @@ class SuperStorage(Storage):
         self.items_quantities_map = {}
         self.total_cost = 0
 
+        self.event_bus = event_bus
+
     def get_shelf(self, position):
         return self.racks[position.row][position.col].shelves[position.shelf_num]
 
@@ -42,13 +43,13 @@ class SuperStorage(Storage):
             self.items_positions_map[package.product] = []
         self.items_positions_map[package.product].append(position)
         self.items_quantities_map[package.product] = self.items_quantities_map.get(package.product, 0) + package.quantity
+        self.event_bus.fire_event('package_inserted', package=package, position=position)
 
     def extract_product(self, forklift, product, quantity, position=None):
-        self.move_forklift(forklift, position)
-        # current_quantity = self.racks[position.row][position.col].shelves[position.shelf_num].get_quantity(product)
-        # if current_quantity == 0:
-        #     return current_quantity
-        # max_quant = min(quantity, current_quantity)
+        if position is not None:
+            self.move_forklift(forklift, position)
+        else:
+            position = forklift.position
         extracted_quantity = self.racks[position.row][position.col].shelves[position.shelf_num].extract_order(product,
                                                                                                               quantity)
         # save/update additional info
@@ -61,6 +62,8 @@ class SuperStorage(Storage):
                     # TODO: what happens if we have multiple items of the same kind in same position?
                     break
         self.items_quantities_map[product] = self.items_quantities_map.get(product, 0) - quantity
+        if extracted_quantity > 0:
+            self.event_bus.fire_event('product_extracted', product=product, quantity=extracted_quantity, position=position)
         return extracted_quantity
 
     def calculate_forklift_cost(self, forklift, position):

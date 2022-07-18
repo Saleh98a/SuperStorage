@@ -1,7 +1,7 @@
 """
 Storage Manager class/interface
 """
-
+from src.events.event_bus import EventBus
 from src.models.sector import Sector
 from src.models.forklift import SSForklift
 from src.storage.storage_utils import insert_naive, insert_knapsack, extract_naive, insert_optimized, extract_optimized
@@ -58,6 +58,8 @@ class StorageManager:
             for i in range(len(learned_info)):
                 if self.top_level_percentage[i] != 0:
                     print("product number", i, "top level frequency=", self.top_level_percentage[i])
+        self.event_bus = EventBus()
+        self.set_handlers()
 
     def insert_container(self, container):
         # TODO: Check if package size is bigger than shelf size
@@ -93,7 +95,22 @@ class StorageManager:
         return self.storage.total_cost
 
     def reset_storage(self):
-        self.storage = SuperStorage(self.storage.storage_settings)
+        self.storage = SuperStorage(self.storage.storage_settings, self.event_bus)
 
     def specifier(self):
         return str(self.insert_algorithm) + " " + str(self.extract_algorithm)
+
+    def package_inserted_handler(self, package, position):
+        for sector in self.sectors:
+            if sector.has_position(position):
+                sector.add_to_sector(package.product, package.quantity)
+
+    def product_extracted_handler(self, product, quantity, position):
+        for sector in self.sectors:
+            if sector.has_position(position):
+                sector.remove_from_sector(product, quantity)
+
+    def set_handlers(self):
+        self.event_bus.subscribe('package_inserted', self.package_inserted_handler)
+        self.event_bus.subscribe('product_extracted', self.product_extracted_handler)
+

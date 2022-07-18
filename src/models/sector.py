@@ -7,7 +7,7 @@ from src.models.index import SSPosition
 
 class Sector:
     def __init__(self, positions, pos_size=200):
-        self.positions = positions
+        self.positions = set(positions)
         self.total_size = len(positions) * pos_size
         self.item_quantities = {}
 
@@ -29,8 +29,10 @@ class Sector:
         if quantity <= 0:
             raise Exception("invalid quantity")
 
-        if quantity > self.get_quantity(item):
-            raise Exception("Sector didn't have this much quantity", self.total_size)
+        sector_quantity = self.get_quantity(item)
+
+        if quantity > sector_quantity:
+            raise Exception("Sector didn't have this much quantity {0} < {1}", sector_quantity, quantity)
 
         self.item_quantities[item] -= quantity
         if self.item_quantities[item] == 0:
@@ -67,3 +69,6 @@ class Sector:
 
     def __next__(self):
         return next(self.positions)
+
+    def has_position(self, position):
+        return position in self.positions
