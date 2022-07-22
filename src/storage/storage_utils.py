@@ -125,7 +125,7 @@ def insert_optimized(storage_manager, forklift, container):
     storage = storage_manager.storage
     sectors = storage_manager.sectors
     products_info = storage_manager.products_info
-
+    top_level = storage_manager.top_level_percentage
     # lists of packages according to where they should go
     # we should have info about current levels in storage
     priority_1 = []
@@ -135,7 +135,8 @@ def insert_optimized(storage_manager, forklift, container):
     for package in container.packages:
         info = products_info[package.product.id]
         # Is it prioritized? percentaged? free?
-        if info.frequency >= 0.1:
+        if sectors[0].get_percentage(package.product) + (package.quantity * 1.0 / sectors[0].total_size) \
+                < 1.2 * top_level[package.product.id]:
             priority_1.append(package)
         elif sectors[1].get_percentage(package.product) + (package.quantity * 1.0 / sectors[1].total_size) \
                 < 1.2 * info.size_percentage:
@@ -173,6 +174,8 @@ def insert_instruction_knapsack(storage, packages, positions, instructions_map):
             instructions_map[position] = packages_in_pos
         for package in packages_in_pos:
             packages.remove(package)
+        if len(packages) == 0:
+            break
     return instructions_map
 
 
@@ -192,11 +195,11 @@ def get_product_positions(product, quantity, storage_manager):
     if storage_quantity < quantity:
         raise Exception("not all the order are in the sotrage,")
 
-    first_quantity = storage_manager.storage.get_item_quantity_at(product, positions_quantity[0][0])
+    first_quantity = positions_quantity[0][1]
     while first_quantity <= (storage_quantity - quantity):
         storage_quantity -= first_quantity
         positions_quantity.pop(0)
-        first_quantity = storage_manager.storage.get_item_quantity_at(product, positions_quantity[0][0])
+        first_quantity = positions_quantity[0][1]
     pos = positions_quantity[0][0]
     quantity = positions_quantity[0][1] - (storage_quantity - quantity)
     positions_quantity.pop(0)

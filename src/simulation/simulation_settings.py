@@ -42,10 +42,11 @@ class SimulationSettings:
                  extract_algo=None,
                  storage_settings=StorageSettings(),
                  insertion_only=True,
-                 interlapping=False,
+                 extraction_probability=0.5,
                  repetitions_num=30,
                  operations_num=100,
-                 packages_per_container=40):
+                 packages_per_container=40,
+                 products_per_order=5):
         if insert_algo is None:
             insert_algo = [InsertAlgorithm.NAIVE, InsertAlgorithm.KNAPSACK]#, InsertAlgorithm.OPTIMIZED]
         if extract_algo is None:
@@ -54,10 +55,11 @@ class SimulationSettings:
         self.insert = insert_algo
         self.extract = extract_algo
         self.insertion_only = insertion_only
-        self.interlapping = interlapping
+        self.extraction_probability = extraction_probability
         self.repetitions_num = repetitions_num
         self.operations_num = operations_num
         self.packages_per_container = packages_per_container
+        self.products_per_order = products_per_order
 
     def __str__(self):
         return str(self.storage_settings) + \

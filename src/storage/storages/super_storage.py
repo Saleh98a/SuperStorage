@@ -67,13 +67,10 @@ class SuperStorage(Storage):
         return extracted_quantity
 
     def calculate_forklift_cost(self, forklift, position):
-        # Don't forget to multiply with the horizontal and vertical coefficient
-        if forklift.position.row == position.row:
-            return abs(forklift.position.col - position.col) + abs(position.shelf_num - forklift.position.shelf_num)
-        return abs(forklift.position.row - position.row) + \
-               abs(position.shelf_num - forklift.position.shelf_num) + \
-               min(forklift.position.col + position.col,
-                   2 * self.storage_settings.racks_per_row - forklift.position.col - position.col)
+        # TODO: Don't forget to multiply with the horizontal and vertical coefficient
+        return forklift.horizontal_coeff * abs(forklift.position.row - position.row) + \
+               forklift.horizontal_coeff * abs(position.col - forklift.position.col) + \
+               forklift.vertical_coeff * abs(position.shelf_num - forklift.position.shelf_num)
 
     def move_forklift(self, forklift, position=SSPosition(0, 0, 0)):
         # Check if forklift is SSForklift and position is SSPosition

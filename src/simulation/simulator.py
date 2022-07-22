@@ -18,6 +18,8 @@ from src.storage.managers.storage_manager import StorageManager
 from src.storage.storages.super_storage import SuperStorage
 from src.simulation.simulation_settings import SimulationSettings
 
+from copy import copy, deepcopy
+
 def initialize_products():
     product_names = [
         'Television',
@@ -149,7 +151,7 @@ def get_exponential_list(exponential_lambda, products_num, size):
     return product_id_list.astype(int)
 
 
-def draw_order(products):
+def draw_order(products, lambda_val=3, products_per_order=10):
     """
     Distributions:
         - Each product quantity: Poisson Distribution
@@ -160,9 +162,9 @@ def draw_order(products):
 
 
     """
-    quantity_lambda_list = [3 for _ in range(len(products))]  # TODO revert this to randint(1,5)
+    quantity_lambda_list = [lambda_val for _ in range(len(products))]  # TODO revert this to randint(1,5)
     exponential_lambda = 40  # TODO revert this to randint(30,80)
-    order_len = np.random.randint(1, 50)
+    order_len = np.random.randint(products_per_order//2, products_per_order)
 
     # print("Printing order len list")
     # for i in range(len(order_len_list)):
@@ -188,7 +190,7 @@ def draw_orders(products, orders_count):
 
 
 
-def draw_container(products, package_max_size):
+def draw_container(products, package_max_size, lambda_val=3, packages_per_container=60):
     """
     Distributions:
         - Each product quantity: Poisson Distribution
@@ -199,9 +201,9 @@ def draw_container(products, package_max_size):
 
 
     """
-    quantity_lambda_list = [15 for _ in range(len(products))]  # TODO revert this to randint(...)
+    quantity_lambda_list = [lambda_val for _ in range(len(products))]  # TODO revert this to randint(...)
     exponential_lambda = 40  # TODO revert this to randint(30,80)
-    container_len = np.random.randint(1, 50)
+    container_len = np.random.randint(packages_per_container//2, packages_per_container)
 
     product_id_list = get_exponential_list(exponential_lambda, len(products), container_len)
 
@@ -270,6 +272,7 @@ class Simulator:
         self.simulation_settings = simulation_settings
         self.operations_num = self.simulation_settings.operations_num
         self.repetitions_num = self.simulation_settings.repetitions_num
+        self.extraction_probability = self.simulation_settings.extraction_probability
         self.curr_fragmentation = 0
         self.curr_cost = 0
         self.curr_runtime = 0
@@ -288,7 +291,7 @@ class Simulator:
                 storage_manager = StorageManager(SuperStorage(self.simulation_settings.storage_settings),
                                                  insert,
                                                  extract,
-                                                 [2, 5, 8],
+                                                 [3, 7, 14],
                                                  self.learned_info)
                 self.storage_managers.append(storage_manager)
                 for graph in self.graphs:
@@ -308,25 +311,48 @@ class Simulator:
         axs = []
         i = 1
         for graph_name in self.graphs:
-            axs.append(fig.add_subplot(3, 1, i))
-            self.create_graph(axs[-1],
-                              list(range(1, self.operations_num + 1)),
-                              # Calculates average over repetitions
-                              [[y / repetition for y in self.graphs[graph_name][manager]] for manager in
-                               self.graphs[graph_name]],
-                              [manager for manager in self.graphs[graph_name]],
-                              graph_name)
-            i += 1
 
-        # Give title for 1st Graph
-        axs[0].set_title('Repetitions = ' + str(repetition))
+            x_values = list(range(1, self.operations_num + 1))
 
-        # Give xlabel for last Graph
-        axs[-1].set(xlabel='Containers')
+            # plotting the points
+            for manager in self.graphs[graph_name]:
+                y_values = [y / repetition for y in self.graphs[graph_name][manager]]
+                plt.plot(x_values, y_values, label=manager)
 
-        plt.ion()
-        plt.legend()
-        plt.show(block=False)
+            # naming the x axis
+            plt.xlabel('steps')
+            # naming the y axis
+            plt.ylabel(graph_name)
+
+            # giving a title to my graph
+            plt.title(graph_name)
+
+            # function to show the plot
+            plt.legend()
+            plt.show(block=False)
+
+            # axs.append(fig.add_subplot(3, 1, 1))
+            # self.create_graph(axs[-1],
+            #                   list(range(1, self.operations_num + 1)),
+            #                   # Calculates average over repetitions
+            #                   [[y / repetition for y in self.graphs[graph_name][manager]] for manager in
+            #                    self.graphs[graph_name]],
+            #                   [manager for manager in self.graphs[graph_name]],
+            #                   graph_name)
+            #
+            # # Give title for 1st Graph
+            # axs[0].set_title('Repetitions = ' + str(repetition))
+            #
+            # # Give xlabel for last Graph
+            # axs[-1].set(xlabel='Containers')
+            #
+            # plt.ion()
+            # plt.legend()
+            # plt.show(block=False)
+            #
+            # i += 1
+
+
 
     def reset_costs(self):
         self.curr_fragmentation = 0
@@ -337,26 +363,36 @@ class Simulator:
         # Print data
         print(self)
 
-        extraction_probability = 0.2
-
         for repetition in range(self.repetitions_num):  # need to get from simulation settings
             for storage_manager in self.storage_managers:
                 storage_manager.reset_storage()
             self.reset_costs()
 
             for curr_operation in tqdm(range(0, self.operations_num)):
-                # Choose a random container
-                chosen_container = draw_container(products=self.products, package_max_size=self.simulation_settings.storage_settings.shelf_size)
-                chosen_order = draw_order(products=self.products)
-                is_extract = random.random() <= extraction_probability
+                # Choose next step
+                is_extract = curr_operation >= 5 and random.random() <= self.extraction_probability
+                if not is_extract:
+                    chosen_container = draw_container(products=self.products,
+                                                      package_max_size=self.simulation_settings.storage_settings.shelf_size,
+                                                      # lambda_val=(3 * (self.extraction_probability) / (1 - self.extraction_probability)),
+                                                      lambda_val=(100),
+                                                      packages_per_container=self.simulation_settings.packages_per_container)
+                else:
+                    chosen_order = draw_order(products=self.products,
+                                              # lambda_val=(1 * (1 - self.extraction_probability) / (self.extraction_probability)),
+                                              lambda_val=(10),
+                                              products_per_order=self.simulation_settings.products_per_order)
+                    order = fix_order(self.storage_managers[0].storage, chosen_order)
 
                 for storage_manager in self.storage_managers:
+                    # print("op {0} sm {1}", curr_operation, storage_manager)
                     # Insert the container
                     if not is_extract:
                         storage_manager.insert_container(chosen_container)
                     else:
-                        order = fix_order(storage_manager.storage, chosen_order)
-                        storage_manager.extract_order(order)
+                        order_copy = copy(order)
+                        order_copy.item_orders = copy(order.item_orders)
+                        storage_manager.extract_order(order_copy)
 
                     # Update Costs
                     self.curr_fragmentation = storage_manager.get_fragmentation()
@@ -364,7 +400,7 @@ class Simulator:
 
                     # Update Graphs
                     self.graphs["Fragmentation"][storage_manager.specifier()][curr_operation] += self.curr_fragmentation
-                    self.graphs["Cost"][storage_manager.specifier()][curr_operation] += self.curr_cost
+                    self.graphs["Cost"][storage_manager.specifier()][curr_operation] += 0 if self.curr_cost == 0 else math.log(self.curr_cost)
 
             # Print Graphs in every repetition
             self.print_plots(repetition + 1)

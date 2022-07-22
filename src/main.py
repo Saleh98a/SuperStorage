@@ -30,10 +30,12 @@ def my_main():
     """
     sim2 = Simulator(
         SimulationSettings(insert_algo=[InsertAlgorithm.NAIVE, InsertAlgorithm.KNAPSACK, InsertAlgorithm.OPTIMIZED],
-                           extract_algo=[ExtractAlgorithm.NAIVE, ExtractAlgorithm.OPTIMIZED],
-                           operations_num=50,
-                           packages_per_container=10,
-                           repetitions_num=10))
+                           extract_algo=[ExtractAlgorithm.OPTIMIZED],
+                           operations_num=600,
+                           extraction_probability=59/60,
+                           packages_per_container=20,
+                           products_per_order=5,
+                           repetitions_num=1))
     sim2.simulate()
 
 
