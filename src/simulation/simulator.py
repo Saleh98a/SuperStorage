@@ -18,117 +18,8 @@ from src.storage.managers.storage_manager import StorageManager
 from src.storage.storages.super_storage import SuperStorage
 from src.simulation.simulation_settings import SimulationSettings
 
-from copy import copy, deepcopy
-
-def initialize_products():
-    product_names = [
-        'Television',
-        'Table',
-        'Chair',
-        'Book',
-        'Coffee',
-        'Water',
-        'Bottle',
-        'Vacuum',
-        'Paint',
-        'Video game',
-        'Board game',
-        'Plant',
-        'Patio furniture',
-        'Door',
-        'Door knob',
-        'Security system',
-        'Sign',
-        'Off-brand accessory',
-        'Casual clothing',
-        'High-end clothing',
-        'Computer',
-        'Computer part',
-        'Monitor',
-        'Glasses',
-        'Sticky notes',
-        'Pens',
-        'Pencils',
-        'Paper',
-        'Cards',
-        'Knives',
-        'Light bulb',
-        'Music',
-        'Glass',
-        'Windows',
-        'Wood',
-        'Napkins',
-        'Silverware',
-        'Sun reflectors',
-        'Towels',
-        'Bikes',
-        'Car accessories',
-        'Headphones',
-        'Music players',
-        'Tea',
-        'Pre-prepared food',
-        'Skateboard',
-        'Cell phone',
-        'Cell phone accessories',
-        'Jewelry',
-        'Rug',
-        'Wall decal',
-        'Painting',
-        'Reprinted artwork',
-        'Sports paraphernalia',
-        'Television paraphernalia',
-        'Movie paraphernalia',
-        '3D glasses/headsets',
-        'Sound systems',
-        'Shoes',
-        'Hat',
-        'Helmet',
-        'Keychain',
-        'Bookend',
-        'Frame',
-        'Coloring book',
-        'Pillow',
-        'Bedsheet',
-        'Wallet',
-        'Money clip',
-        'Toy',
-        'Clock',
-        'Gag gift',
-        'Sculpture',
-        'Candle',
-        'Cleaning supplies',
-        'Canvas',
-        'Bean bag chair',
-        'Back support attachments for chairs',
-        'Wheelchair',
-        'Parts for discontinued electronics',
-        'Weight loss product',
-        'Scale',
-        'Shower curtain',
-        'Toothbrush',
-        'Toilet seat covers',
-        'Tattoo gun',
-        'Hair care product',
-        'Makeup',
-        'Gun',
-        'Poster',
-        'Fabric',
-        'Pharmaceuticals',
-        'Movie',
-        'GPS locator',
-        'Car',
-        'Ticket',
-        'Piping',
-        'Tool',
-        'Weights',
-        'Airpods'
-    ]
-
-    products = []
-    for i in range(len(product_names)):
-        products.append(Product(i, product_names[i], 0, randint(10, 30), 'cat'))  # TODO: change weight and category
-    return products
-
+from copy import copy
+from src.simulation.io_utils import *
 
 def initialize_containers(products, containers_num, packages_num_per_container, shelf_size):
     containers = []
@@ -236,10 +127,10 @@ def learn(products, total_orders):
 
     # Get total size & total orders of each product
     total_size = 0
-    total_size_of_product = [0 for _ in range(products_num)]
-    total_orders_of_product = [0 for _ in range(products_num)]
+    total_size_of_product = [0 for _ in range(products_num + 1)]
+    total_orders_of_product = [0 for _ in range(products_num + 1)]
     for order in orders:
-        current_order_products = [False for _ in range(products_num)]
+        current_order_products = [False for _ in range(products_num + 1)]
         for product in order.item_orders:
             if not current_order_products[product.id]:
                 total_orders_of_product[product.id] += 1
@@ -273,38 +164,31 @@ class Simulator:
         self.operations_num = self.simulation_settings.operations_num
         self.repetitions_num = self.simulation_settings.repetitions_num
         self.extraction_probability = self.simulation_settings.extraction_probability
+        self.insertion_headstart = self.simulation_settings.insertion_headstart
         self.curr_fragmentation = 0
         self.curr_cost = 0
         self.curr_runtime = 0
 
         self.products = initialize_products()
+
         self.learned_info = learn(self.products, 500)
 
         self.storage_managers = []
         self.graphs = {
             'Fragmentation': {},
-            'Cost': {}
+            'Cost': {},
+            'Insertion Cost': {},
+            'Extraction Cost': {},
         }
-        for insert in simulation_settings.insert:
-            for extract in simulation_settings.extract:
-                # TODO: change SuperStorage(), maybe take it from simulation settings
-                storage_manager = StorageManager(SuperStorage(self.simulation_settings.storage_settings),
-                                                 insert,
-                                                 extract,
-                                                 [3, 7, 14],
-                                                 self.learned_info)
-                self.storage_managers.append(storage_manager)
-                for graph in self.graphs:
-                    self.graphs[graph][storage_manager.specifier()] = [0 for _ in range(0, self.operations_num)]
+        for storage_manager_settings in self.simulation_settings.storage_managers_settings:
+            storage_manager_settings.learned_info = self.learned_info
+            storage_manager = StorageManager(SuperStorage(self.simulation_settings.storage_settings),
+                                             storage_manager_settings)
+            self.storage_managers.append(storage_manager)
+            for graph in self.graphs:
+                self.graphs[graph][storage_manager.specifier()] = [0 for _ in range(0, self.operations_num)]
 
-        # plt.ion()
-
-    def create_graph(self, curr_ax, x, ylist, ynames, ylabel):
-        for y, yname in zip(ylist, ynames):
-            curr_ax.plot(x, y, label=yname)
-        curr_ax.set(ylabel=ylabel)
-        curr_ax.label_outer()
-        curr_ax.set_xlim([1, self.operations_num])  # TODO: check why doesnt work on 1
+        plt.ion()
 
     def print_plots(self, repetition):
         fig = plt.figure()
@@ -322,7 +206,7 @@ class Simulator:
             # naming the x axis
             plt.xlabel('steps')
             # naming the y axis
-            plt.ylabel(graph_name)
+            self.ylabel = plt.ylabel(graph_name)
 
             # giving a title to my graph
             plt.title(graph_name)
@@ -330,29 +214,6 @@ class Simulator:
             # function to show the plot
             plt.legend()
             plt.show(block=False)
-
-            # axs.append(fig.add_subplot(3, 1, 1))
-            # self.create_graph(axs[-1],
-            #                   list(range(1, self.operations_num + 1)),
-            #                   # Calculates average over repetitions
-            #                   [[y / repetition for y in self.graphs[graph_name][manager]] for manager in
-            #                    self.graphs[graph_name]],
-            #                   [manager for manager in self.graphs[graph_name]],
-            #                   graph_name)
-            #
-            # # Give title for 1st Graph
-            # axs[0].set_title('Repetitions = ' + str(repetition))
-            #
-            # # Give xlabel for last Graph
-            # axs[-1].set(xlabel='Containers')
-            #
-            # plt.ion()
-            # plt.legend()
-            # plt.show(block=False)
-            #
-            # i += 1
-
-
 
     def reset_costs(self):
         self.curr_fragmentation = 0
@@ -370,7 +231,7 @@ class Simulator:
 
             for curr_operation in tqdm(range(0, self.operations_num)):
                 # Choose next step
-                is_extract = curr_operation >= 5 and random.random() <= self.extraction_probability
+                is_extract = curr_operation >= self.insertion_headstart and random.random() <= self.extraction_probability
                 if not is_extract:
                     chosen_container = draw_container(products=self.products,
                                                       package_max_size=self.simulation_settings.storage_settings.shelf_size,
@@ -395,12 +256,16 @@ class Simulator:
                         storage_manager.extract_order(order_copy)
 
                     # Update Costs
-                    self.curr_fragmentation = storage_manager.get_fragmentation()
-                    self.curr_cost = storage_manager.get_total_cost()
+                    curr_fragmentation = storage_manager.get_fragmentation()
+                    curr_cost = storage_manager.get_total_cost()
+                    curr_insertion_cost = storage_manager.get_insertion_cost()
+                    curr_extraction_cost = storage_manager.get_extraction_cost()
 
                     # Update Graphs
-                    self.graphs["Fragmentation"][storage_manager.specifier()][curr_operation] += self.curr_fragmentation
-                    self.graphs["Cost"][storage_manager.specifier()][curr_operation] += 0 if self.curr_cost == 0 else math.log(self.curr_cost)
+                    self.graphs["Fragmentation"][storage_manager.specifier()][curr_operation] += curr_fragmentation
+                    self.graphs["Cost"][storage_manager.specifier()][curr_operation] += 0 if curr_cost == 0 else math.log(curr_cost)
+                    self.graphs["Insertion Cost"][storage_manager.specifier()][curr_operation] += 0 if curr_insertion_cost == 0 else math.log(curr_insertion_cost)
+                    self.graphs["Extraction Cost"][storage_manager.specifier()][curr_operation] += 0 if curr_extraction_cost == 0 else math.log(curr_extraction_cost)
 
             # Print Graphs in every repetition
             self.print_plots(repetition + 1)

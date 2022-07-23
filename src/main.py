@@ -1,5 +1,6 @@
 from src.simulation.simulator import Simulator
 from src.simulation.simulation_settings import SimulationSettings, InsertAlgorithm, ExtractAlgorithm
+from src.storage.managers.storage_manager_settings import StorageManagerSettings
 
 
 def my_main():
@@ -29,12 +30,16 @@ def my_main():
         manager.insert_container(third_container)
     """
     sim2 = Simulator(
-        SimulationSettings(insert_algo=[InsertAlgorithm.NAIVE, InsertAlgorithm.KNAPSACK, InsertAlgorithm.OPTIMIZED],
-                           extract_algo=[ExtractAlgorithm.OPTIMIZED],
+        SimulationSettings(storage_managers_settings=[
+                                StorageManagerSettings(InsertAlgorithm.NAIVE, ExtractAlgorithm.OPTIMIZED),
+                                StorageManagerSettings(InsertAlgorithm.KNAPSACK, ExtractAlgorithm.OPTIMIZED),
+                                StorageManagerSettings(InsertAlgorithm.OPTIMIZED, ExtractAlgorithm.OPTIMIZED, [6, 14, 32]),
+                            ],
                            operations_num=600,
-                           extraction_probability=59/60,
-                           packages_per_container=20,
+                           extraction_probability=19/20,
+                           packages_per_container=40,
                            products_per_order=5,
+                           insertion_headstart=8,
                            repetitions_num=1))
     sim2.simulate()
 

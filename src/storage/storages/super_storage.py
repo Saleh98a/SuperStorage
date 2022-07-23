@@ -26,6 +26,8 @@ class SuperStorage(Storage):
         self.items_positions_map = {}
         self.items_quantities_map = {}
         self.total_cost = 0
+        self.insertion_cost = 0
+        self.extraction_cost = 0
 
         self.event_bus = event_bus
 
@@ -33,7 +35,8 @@ class SuperStorage(Storage):
         return self.racks[position.row][position.col].shelves[position.shelf_num]
 
     def insert_package(self, forklift, package, position=None):
-        self.move_forklift(forklift, position)
+        cost = self.move_forklift(forklift, position)
+        self.insertion_cost += cost
         self.racks[position.row][position.col].shelves[position.shelf_num].put_package(package)
 
         # save/update additional info
@@ -47,7 +50,8 @@ class SuperStorage(Storage):
 
     def extract_product(self, forklift, product, quantity, position=None):
         if position is not None:
-            self.move_forklift(forklift, position)
+            cost = self.move_forklift(forklift, position)
+            self.extraction_cost += cost
         else:
             position = forklift.position
         extracted_quantity = self.racks[position.row][position.col].shelves[position.shelf_num].extract_order(product,
@@ -78,8 +82,10 @@ class SuperStorage(Storage):
             raise Exception("incompatible arguments 1")
         if not isinstance(position, SSPosition):
             raise Exception("incompatible arguments 2")
-        self.total_cost += self.calculate_forklift_cost(forklift, position)
+        cost = self.calculate_forklift_cost(forklift, position)
+        self.total_cost += cost
         forklift.position = position
+        return cost
 
     def get_items_at(self, position):
         return self.racks[position.row][position.col].shelves[position.shelf_num].item_quantities
