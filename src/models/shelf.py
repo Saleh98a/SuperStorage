@@ -7,16 +7,18 @@ import math
 
 
 class Shelf:
-    def __init__(self, size, weight_limit=math.inf):
+    def __init__(self, size, event_bus, weight_limit=math.inf):
         self.size = size
         self.used_size = 0
         self.item_quantities = {}
+        self.event_bus = event_bus
 
     def put_package(self, package):
         if not self.can_put_package(package):
             raise Exception("Package can't fit on this shelf")
         self.used_size += package.size()
         self.item_quantities[package.product] = self.item_quantities.get(package.product, 0) + package.quantity
+        self.event_bus.fire_event('shelf_package_inserted', shelf=self, package=package)
 
     def extract_order(self, item, quantity):  # we return the quantity that we extracted from this shelf
         if quantity == 0:
@@ -33,6 +35,7 @@ class Shelf:
             self.item_quantities.pop(item)
         extracted_quantity = min(current_quantity, quantity)
         self.used_size -= (extracted_quantity * item.size)
+        self.event_bus.fire_event('shelf_order_extracted', shelf=self, item=item, quantity=extracted_quantity)
         return extracted_quantity
 
     def get_quantity(self, item):

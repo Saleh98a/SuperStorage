@@ -17,5 +17,3 @@ def initialize_products():
                                 row['supplier_id']))
 
     return products
-
-print(initialize_products())

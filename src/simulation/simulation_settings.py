@@ -48,7 +48,9 @@ class SimulationSettings:
                  repetitions_num=30,
                  operations_num=100,
                  packages_per_container=40,
-                 products_per_order=5):
+                 products_per_order=5,
+                 insert_lambda_coeff=1,
+                 extract_lambda_coeff=1):
         if storage_managers_settings is None:
             storage_managers_settings = [
                 StorageManagerSettings(InsertAlgorithm.NAIVE, ExtractAlgorithm.NAIVE)
@@ -62,6 +64,8 @@ class SimulationSettings:
         self.packages_per_container = packages_per_container
         self.products_per_order = products_per_order
         self.insertion_headstart = insertion_headstart
+        self.insert_lambda_coeff = insert_lambda_coeff
+        self.extract_lambda_coeff = extract_lambda_coeff
 
     def __str__(self):
         return str(self.storage_settings) + \
@@ -69,13 +73,3 @@ class SimulationSettings:
                "Operations per Simulation Num: " + str(self.operations_num) + "\n" + \
                "Packages Per Container: " + str(self.packages_per_container)
 
-
-"""
-what parameters we need ?!
-    1.insert algorithm
-    2.extract algorithm
-3 kinds of simulations
-1. just insert
-2. insert and extract (not interlapping)
-3. insert and extract (interlapping)
-"""

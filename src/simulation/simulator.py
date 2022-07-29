@@ -8,6 +8,7 @@ from random import randint
 import numpy as np
 import matplotlib.pyplot as plt
 from tqdm import tqdm
+import seaborn as sns; sns.set_theme()
 
 from src.models.container import Container
 from src.models.order import Order
@@ -54,7 +55,7 @@ def draw_order(products, lambda_val=3, products_per_order=10):
 
     """
     quantity_lambda_list = [lambda_val for _ in range(len(products))]  # TODO revert this to randint(1,5)
-    exponential_lambda = 40  # TODO revert this to randint(30,80)
+    exponential_lambda = 20  # TODO revert this to randint(30,80)
     order_len = np.random.randint(products_per_order//2, products_per_order)
 
     # print("Printing order len list")
@@ -76,8 +77,8 @@ def draw_order(products, lambda_val=3, products_per_order=10):
 
     return order
 
-def draw_orders(products, orders_count):
-    return [draw_order(products) for _ in range(orders_count)]
+def draw_orders(products, orders_count, extraction_lambda):
+    return [draw_order(products, extraction_lambda) for _ in range(orders_count)]
 
 
 
@@ -93,7 +94,7 @@ def draw_container(products, package_max_size, lambda_val=3, packages_per_contai
 
     """
     quantity_lambda_list = [lambda_val for _ in range(len(products))]  # TODO revert this to randint(...)
-    exponential_lambda = 40  # TODO revert this to randint(30,80)
+    exponential_lambda = 20  # TODO revert this to randint(30,80)
     container_len = np.random.randint(packages_per_container//2, packages_per_container)
 
     product_id_list = get_exponential_list(exponential_lambda, len(products), container_len)
@@ -115,15 +116,15 @@ def draw_container(products, package_max_size, lambda_val=3, packages_per_contai
 
     return container
 
-def draw_containers(products, containers_count, package_max_size):
-    return [draw_container(products, package_max_size) for _ in range(containers_count)]
+def draw_containers(products, containers_count, package_max_size, insertion_lambda):
+    return [draw_container(products, package_max_size, insertion_lambda) for _ in range(containers_count)]
 
 
-def learn(products, total_orders):
+def learn(products, total_orders, insertion_lambda, extraction_lambda):
     print("---------------Learning---------------")
     products_num = len(products)
 
-    orders = draw_orders(products, total_orders)
+    orders = draw_orders(products, total_orders, extraction_lambda=extraction_lambda)
 
     # Get total size & total orders of each product
     total_size = 0
@@ -165,13 +166,12 @@ class Simulator:
         self.repetitions_num = self.simulation_settings.repetitions_num
         self.extraction_probability = self.simulation_settings.extraction_probability
         self.insertion_headstart = self.simulation_settings.insertion_headstart
-        self.curr_fragmentation = 0
-        self.curr_cost = 0
-        self.curr_runtime = 0
 
         self.products = initialize_products()
+        self.insertion_lambda_val = self.simulation_settings.insert_lambda_coeff * self.extraction_probability / (1 - self.extraction_probability)
+        self.extraction_lambda_val = self.simulation_settings.extract_lambda_coeff * self.simulation_settings.packages_per_container / self.simulation_settings.products_per_order,
 
-        self.learned_info = learn(self.products, 500)
+        self.learned_info = learn(self.products, 500, insertion_lambda=self.insertion_lambda_val, extraction_lambda=self.extraction_lambda_val)
 
         self.storage_managers = []
         self.graphs = {
@@ -189,6 +189,34 @@ class Simulator:
                 self.graphs[graph][storage_manager.specifier()] = [0 for _ in range(0, self.operations_num)]
 
         plt.ion()
+
+    def show_heatmap(self):
+        for storage_manager in self.storage_managers:
+            # Define the plot
+            fig, ax = plt.subplots()
+
+            # Add title to the Heat map
+            title = str(storage_manager.specifier()) + " Storage Heat Map"
+
+            # Set the font size and the distance of the title from the plot
+            plt.title(title, fontsize=18)
+            ttl = ax.title
+            ttl.set_position([0.5, 1.05])
+
+            # Hide ticks for X & Y axis
+            ax.set_xticks([])
+            ax.set_yticks([])
+
+            # Remove the axes
+            ax.axis('off')
+
+            racks = storage_manager.storage.racks
+            data = [[x.activity for x in row] for row in racks]
+
+            ax = sns.heatmap(data, ax=ax)
+
+            plt.show(block=False)
+
 
     def print_plots(self, repetition):
         fig = plt.figure()
@@ -215,19 +243,14 @@ class Simulator:
             plt.legend()
             plt.show(block=False)
 
-    def reset_costs(self):
-        self.curr_fragmentation = 0
-        self.curr_cost = 0
-        self.curr_runtime = 0
-
     def simulate(self):
         # Print data
         print(self)
 
         for repetition in range(self.repetitions_num):  # need to get from simulation settings
             for storage_manager in self.storage_managers:
+                # TODO: this doesn't really reset info in storage manager
                 storage_manager.reset_storage()
-            self.reset_costs()
 
             for curr_operation in tqdm(range(0, self.operations_num)):
                 # Choose next step
@@ -235,18 +258,15 @@ class Simulator:
                 if not is_extract:
                     chosen_container = draw_container(products=self.products,
                                                       package_max_size=self.simulation_settings.storage_settings.shelf_size,
-                                                      # lambda_val=(3 * (self.extraction_probability) / (1 - self.extraction_probability)),
-                                                      lambda_val=(100),
+                                                      lambda_val=self.insertion_lambda_val,
                                                       packages_per_container=self.simulation_settings.packages_per_container)
                 else:
                     chosen_order = draw_order(products=self.products,
-                                              # lambda_val=(1 * (1 - self.extraction_probability) / (self.extraction_probability)),
-                                              lambda_val=(10),
+                                              lambda_val=self.extraction_lambda_val,
                                               products_per_order=self.simulation_settings.products_per_order)
                     order = fix_order(self.storage_managers[0].storage, chosen_order)
 
                 for storage_manager in self.storage_managers:
-                    # print("op {0} sm {1}", curr_operation, storage_manager)
                     # Insert the container
                     if not is_extract:
                         storage_manager.insert_container(chosen_container)
@@ -269,6 +289,7 @@ class Simulator:
 
             # Print Graphs in every repetition
             self.print_plots(repetition + 1)
+            self.show_heatmap()
 
     def __str__(self):
         return "Simulating a storage:\n" + \

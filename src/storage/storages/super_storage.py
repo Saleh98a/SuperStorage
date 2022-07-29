@@ -123,16 +123,22 @@ class SuperStorage(Storage):
         temp = SSPosition(self.iter_pos.row, self.iter_pos.col, self.iter_pos.shelf_num)
         if self.iter_pos.shelf_num + 1 < self.storage_settings.shelves_per_rack:
             self.iter_pos.shelf_num += 1
-        elif self.iter_pos.col + 1 < self.storage_settings.racks_per_row:
+        elif self.iter_pos.row + 1 < self.storage_settings.rows and \
+                self.iter_pos.col - 1 >= 0:
             self.iter_pos.shelf_num = 0
-            self.iter_pos.col += 1
-        else:
+            self.iter_pos.col -= 1
+            self.iter_pos.row += 1
+        elif self.iter_pos.row + 1 < self.storage_settings.racks_per_row:
             # TODO change so that we continue from col and just change row
             self.iter_pos.shelf_num = 0
-            self.iter_pos.col = 0
-            self.iter_pos.row += 1
+            self.iter_pos.col += self.iter_pos.row + 1
+            self.iter_pos.row = 0
+        else:
+            self.iter_pos.shelf_num = 0
+            self.iter_pos.row = (self.iter_pos.row + self.iter_pos.col + 1) - (self.storage_settings.racks_per_row - 1)
+            self.iter_pos.col = self.storage_settings.racks_per_row - 1
 
-        if temp.row == self.storage_settings.rows:
+        if temp.row == self.storage_settings.rows and temp.col == self.storage_settings.racks_per_row - 1:
             raise StopIteration
 
         return temp
