@@ -20,7 +20,8 @@ def main():
             insert_lambda_coeff=3,
             extract_lambda_coeff=2,
             insertion_headstart=15,
-            repetitions_num=1
+            repetitions_num=1,
+            export=True,
         )
     )
     simulator.simulate()

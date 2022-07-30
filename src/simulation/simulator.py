@@ -2,7 +2,9 @@
 Simulator Class
 Runs a storage environment simulation
 """
+import datetime
 import math
+import os
 import random
 from random import randint
 import numpy as np
@@ -188,9 +190,20 @@ class Simulator:
             for graph in self.graphs:
                 self.graphs[graph][storage_manager.specifier()] = [0 for _ in range(0, self.operations_num)]
 
+        self.simulation_id = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+        self.export_path = 'simulation_results/{0}'.format(self.simulation_id)
+
+        if self.simulation_settings.export:
+            if not os.path.exists(self.export_path):
+                os.makedirs(self.export_path)
+            file = open('{0}/{1}'.format(self.export_path, 'description.txt'), "w")
+            file.write(str(self.simulation_settings))
+            file.close()
+
         plt.ion()
 
     def show_heatmap(self):
+        i = 0
         for storage_manager in self.storage_managers:
             # Define the plot
             fig, ax = plt.subplots()
@@ -199,7 +212,7 @@ class Simulator:
             title = str(storage_manager.specifier()) + " Storage Heat Map"
 
             # Set the font size and the distance of the title from the plot
-            plt.title(title, fontsize=18)
+            plt.title(title, fontsize=16)
             ttl = ax.title
             ttl.set_position([0.5, 1.05])
 
@@ -215,6 +228,9 @@ class Simulator:
 
             ax = sns.heatmap(data, ax=ax)
 
+            i = i + 1
+            if self.simulation_settings.export:
+                plt.savefig('{0}/{1}'.format(self.export_path, 'heatmap' + str(i)))
             plt.show(block=False)
 
 
@@ -241,6 +257,9 @@ class Simulator:
 
             # function to show the plot
             plt.legend()
+
+            if self.simulation_settings.export:
+                plt.savefig('{0}/{1}'.format(self.export_path, graph_name))
             plt.show(block=False)
 
     def simulate(self):

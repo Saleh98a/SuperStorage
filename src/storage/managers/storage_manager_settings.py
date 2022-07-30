@@ -17,3 +17,10 @@ class StorageManagerSettings:
         self.learned_info = learned_info
 
 
+    def __str__(self):
+        return "Insert: " + str(self.insert_algorithm) + "\n" + \
+            "Extract: " + str(self.extract_algorithm) + "\n" + \
+            "Sector Bounds: " + str(self.sector_bounds) + "\n"
+            # "Learned Info: " + str(self.learned_info) + "\n"
+
+
