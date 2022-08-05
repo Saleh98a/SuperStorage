@@ -10,7 +10,9 @@ from random import randint
 import numpy as np
 import matplotlib.pyplot as plt
 from tqdm import tqdm
-import seaborn as sns; sns.set_theme()
+import seaborn as sns;
+
+sns.set_theme()
 
 from src.models.container import Container
 from src.models.order import Order
@@ -24,28 +26,16 @@ from src.simulation.simulation_settings import SimulationSettings
 from copy import copy
 from src.simulation.io_utils import *
 
-def initialize_containers(products, containers_num, packages_num_per_container, shelf_size):
-    containers = []
-    for container in range(containers_num):
-        packages = []
-        for package in range(packages_num_per_container):
-            product = products[randint(0, 99)]
-            quantity = randint(1, shelf_size // product.size)
-            p = Package(product, quantity)
-            packages.append(p)
-        containers.append(Container(packages))
-    return containers
 
-
-def get_exponential_list(exponential_lambda, products_num, size):
-    product_id_list = np.random.exponential(exponential_lambda, size)
+def get_exponential_list(exponential_scale, products_num, size):
+    product_id_list = np.random.exponential(exponential_scale, size)
     for i in range(size):
         while product_id_list[i] < 0 or product_id_list[i] >= products_num:
-            product_id_list[i] = int(np.random.exponential(exponential_lambda))
+            product_id_list[i] = int(np.random.exponential(exponential_scale))
     return product_id_list.astype(int)
 
 
-def draw_order(products, lambda_val=3, products_per_order=10):
+def draw_order(products, lambda_val=3, products_per_order=10, exponential_scale=20):
     """
     Distributions:
         - Each product quantity: Poisson Distribution
@@ -56,16 +46,15 @@ def draw_order(products, lambda_val=3, products_per_order=10):
 
 
     """
-    quantity_lambda_list = [lambda_val for _ in range(len(products))]  # TODO revert this to randint(1,5)
-    exponential_lambda = 20  # TODO revert this to randint(30,80)
-    order_len = np.random.randint(products_per_order//2, products_per_order)
+    quantity_lambda_list = [lambda_val for _ in range(len(products))]
+    order_len = np.random.randint(products_per_order // 2, products_per_order)
 
     # print("Printing order len list")
     # for i in range(len(order_len_list)):
     #     print(order_len_list[i])
 
     # print("order len list sum", order_len_list.sum())
-    product_id_list = get_exponential_list(exponential_lambda, len(products), order_len)
+    product_id_list = get_exponential_list(exponential_scale, len(products), order_len)
 
     idx = 0
     order = Order()
@@ -79,12 +68,12 @@ def draw_order(products, lambda_val=3, products_per_order=10):
 
     return order
 
-def draw_orders(products, orders_count, extraction_lambda):
-    return [draw_order(products, extraction_lambda) for _ in range(orders_count)]
+
+def draw_orders(products, orders_count, extraction_lambda, exponential_scale):
+    return [draw_order(products, extraction_lambda, exponential_scale) for _ in range(orders_count)]
 
 
-
-def draw_container(products, package_max_size, lambda_val=3, packages_per_container=60):
+def draw_container(products, package_max_size, lambda_val=3, packages_per_container=60, exponential_scale=20):
     """
     Distributions:
         - Each product quantity: Poisson Distribution
@@ -95,11 +84,10 @@ def draw_container(products, package_max_size, lambda_val=3, packages_per_contai
 
 
     """
-    quantity_lambda_list = [lambda_val for _ in range(len(products))]  # TODO revert this to randint(...)
-    exponential_lambda = 20  # TODO revert this to randint(30,80)
-    container_len = np.random.randint(packages_per_container//2, packages_per_container)
+    quantity_lambda_list = [lambda_val for _ in range(len(products))]
+    container_len = np.random.randint(packages_per_container // 2, packages_per_container)
 
-    product_id_list = get_exponential_list(exponential_lambda, len(products), container_len)
+    product_id_list = get_exponential_list(exponential_scale, len(products), container_len)
 
     idx = 0
     container = Container()
@@ -118,15 +106,17 @@ def draw_container(products, package_max_size, lambda_val=3, packages_per_contai
 
     return container
 
-def draw_containers(products, containers_count, package_max_size, insertion_lambda):
-    return [draw_container(products, package_max_size, insertion_lambda) for _ in range(containers_count)]
+
+def draw_containers(products, containers_count, package_max_size, insertion_lambda, exponential_scale):
+    return [draw_container(products, package_max_size, insertion_lambda, exponential_scale) for _ in
+            range(containers_count)]
 
 
-def learn(products, total_orders, insertion_lambda, extraction_lambda):
+def learn(products, total_orders, extraction_lambda, exponential_scale):
     print("---------------Learning---------------")
     products_num = len(products)
 
-    orders = draw_orders(products, total_orders, extraction_lambda=extraction_lambda)
+    orders = draw_orders(products, total_orders, extraction_lambda, exponential_scale)
 
     # Get total size & total orders of each product
     total_size = 0
@@ -170,10 +160,12 @@ class Simulator:
         self.insertion_headstart = self.simulation_settings.insertion_headstart
 
         self.products = initialize_products()
-        self.insertion_lambda_val = self.simulation_settings.insert_lambda_coeff * self.extraction_probability / (1 - self.extraction_probability)
+        self.insertion_lambda_val = self.simulation_settings.insert_lambda_coeff * self.extraction_probability / (
+                    1 - self.extraction_probability)
         self.extraction_lambda_val = self.simulation_settings.extract_lambda_coeff * self.simulation_settings.packages_per_container / self.simulation_settings.products_per_order,
-
-        self.learned_info = learn(self.products, 500, insertion_lambda=self.insertion_lambda_val, extraction_lambda=self.extraction_lambda_val)
+        self.exponential_scale = self.simulation_settings.exponential_scale
+        self.learned_info = learn(self.products, 500, extraction_lambda=self.extraction_lambda_val,
+                                  exponential_scale=self.exponential_scale)
 
         self.storage_managers = []
         self.graphs = {
@@ -196,7 +188,7 @@ class Simulator:
         if self.simulation_settings.export:
             if not os.path.exists(self.export_path):
                 os.makedirs(self.export_path)
-            file = open('{0}/{1}'.format(self.export_path, 'description.txt'), "w")
+            file = open('{0}/{1}'.format(self.export_path, 'simulation.txt'), "w")
             file.write(str(self.simulation_settings))
             file.close()
 
@@ -232,7 +224,6 @@ class Simulator:
             if self.simulation_settings.export:
                 plt.savefig('{0}/{1}'.format(self.export_path, 'heatmap' + str(i)))
             plt.show(block=False)
-
 
     def print_plots(self, repetition):
         fig = plt.figure()
@@ -278,11 +269,13 @@ class Simulator:
                     chosen_container = draw_container(products=self.products,
                                                       package_max_size=self.simulation_settings.storage_settings.shelf_size,
                                                       lambda_val=self.insertion_lambda_val,
-                                                      packages_per_container=self.simulation_settings.packages_per_container)
+                                                      packages_per_container=self.simulation_settings.packages_per_container,
+                                                      exponential_scale=self.exponential_scale)
                 else:
                     chosen_order = draw_order(products=self.products,
                                               lambda_val=self.extraction_lambda_val,
-                                              products_per_order=self.simulation_settings.products_per_order)
+                                              products_per_order=self.simulation_settings.products_per_order,
+                                              exponential_scale=self.exponential_scale)
                     order = fix_order(self.storage_managers[0].storage, chosen_order)
 
                 for storage_manager in self.storage_managers:
@@ -302,13 +295,36 @@ class Simulator:
 
                     # Update Graphs
                     self.graphs["Fragmentation"][storage_manager.specifier()][curr_operation] += curr_fragmentation
-                    self.graphs["Cost"][storage_manager.specifier()][curr_operation] += 0 if curr_cost == 0 else math.log(curr_cost)
-                    self.graphs["Insertion Cost"][storage_manager.specifier()][curr_operation] += 0 if curr_insertion_cost == 0 else math.log(curr_insertion_cost)
-                    self.graphs["Extraction Cost"][storage_manager.specifier()][curr_operation] += 0 if curr_extraction_cost == 0 else math.log(curr_extraction_cost)
+                    self.graphs["Cost"][storage_manager.specifier()][
+                        curr_operation] += 0 if curr_cost == 0 else math.log(curr_cost)
+                    self.graphs["Insertion Cost"][storage_manager.specifier()][
+                        curr_operation] += 0 if curr_insertion_cost == 0 else math.log(curr_insertion_cost)
+                    self.graphs["Extraction Cost"][storage_manager.specifier()][
+                        curr_operation] += 0 if curr_extraction_cost == 0 else math.log(curr_extraction_cost)
 
             # Print Graphs in every repetition
             self.print_plots(repetition + 1)
             self.show_heatmap()
+
+            if self.simulation_settings.export:
+                file = open('{0}/{1}'.format(self.export_path, 'simulation.txt'), "a")
+                file.write(self.simulation_result_to_text())
+                file.close()
+
+    def simulation_result_to_text(self):
+        results = "\n########### RESULTS ###########\n"
+        for storage_manager in self.storage_managers:
+            fragmentation = storage_manager.get_fragmentation()
+            cost = storage_manager.get_total_cost()
+            insertion_cost = storage_manager.get_insertion_cost()
+            extraction_cost = storage_manager.get_extraction_cost()
+            results += "Storage Manager Settings:\n" + str(storage_manager.settings) + "\n"
+            results += "Fragmentation:" + str(fragmentation) + "\n"
+            results += "Cost: " + str(cost) + "\n"
+            results += "Insertion Cost: " + str(insertion_cost) + "\n"
+            results += "Extraction Cost: " + str(extraction_cost) + "\n"
+            results += "\n"
+        return results
 
     def __str__(self):
         return "Simulating a storage:\n" + \

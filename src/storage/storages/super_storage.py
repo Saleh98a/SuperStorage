@@ -42,6 +42,7 @@ class SuperStorage(Storage):
         # save/update additional info
         self.racks[position.row][position.col].used_size += package.size()
 
+        # TODO: move to StorageManager
         if package.product not in self.items_positions_map:
             self.items_positions_map[package.product] = []
         self.items_positions_map[package.product].append(position)
@@ -59,6 +60,7 @@ class SuperStorage(Storage):
         # save/update additional info
         self.racks[position.row][position.col].used_size -= extracted_quantity * product.size
 
+        # TODO: move to StorageManager
         if extracted_quantity <= quantity and not extracted_quantity == 0:
             for position_to_check in self.items_positions_map[product]:
                 if position_to_check == position:
@@ -71,7 +73,6 @@ class SuperStorage(Storage):
         return extracted_quantity
 
     def calculate_forklift_cost(self, forklift, position):
-        # TODO: Don't forget to multiply with the horizontal and vertical coefficient
         return forklift.horizontal_coeff * abs(forklift.position.row - position.row) + \
                forklift.horizontal_coeff * abs(position.col - forklift.position.col) + \
                forklift.vertical_coeff * abs(position.shelf_num - forklift.position.shelf_num)
@@ -129,7 +130,7 @@ class SuperStorage(Storage):
             self.iter_pos.col -= 1
             self.iter_pos.row += 1
         elif self.iter_pos.row + 1 < self.storage_settings.racks_per_row:
-            # TODO change so that we continue from col and just change row
+            # TODO: change so that we continue from col and just change row
             self.iter_pos.shelf_num = 0
             self.iter_pos.col += self.iter_pos.row + 1
             self.iter_pos.row = 0

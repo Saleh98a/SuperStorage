@@ -57,9 +57,6 @@ def get_path_cost(path):
 
 
 def insert_naive(storage, forklift, container):
-    # i = 1
-    # #print("new container")
-    #sleep(1)
     for package in container.packages:
         success = False
         positions_iter = iter(storage)
@@ -74,7 +71,8 @@ def insert_naive(storage, forklift, container):
 
 def extract_naive(storage, forklift, order):
     positions_iter = iter(storage)
-    for product in order:  # TODO: removing from order might cause us some problems
+    # TODO: swap for loops
+    for product in order:
         for position in positions_iter:
             ordered_quantity = order.get_product_quantity(product)
             current_quantity = storage.get_item_quantity_at(product, position)

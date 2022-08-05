@@ -42,6 +42,7 @@ class SimulationSettings:
     def __init__(self,
                  storage_managers_settings=None,
                  storage_settings=StorageSettings(),
+                 exponential_scale=20,
                  extraction_probability=0.5,
                  insertion_headstart=5,
                  repetitions_num=1,
@@ -57,6 +58,7 @@ class SimulationSettings:
             ]
         self.storage_managers_settings = storage_managers_settings
         self.storage_settings = storage_settings
+        self.exponential_scale = exponential_scale
         self.extraction_probability = extraction_probability
         self.repetitions_num = repetitions_num
         self.operations_num = operations_num
