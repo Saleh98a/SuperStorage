@@ -18,5 +18,5 @@ In this project, we are simulating a storage environment while researching diffe
 
 ## Table of Contents
 1. [Super Storage](docs/SuperStorage.md)
-2. [UML Diagram](https://raw.githubusercontent.com/Saleh98a/SuperStorage/main/docs/UML%20Graph.png?token=GHSAT0AAAAAABXLE5S5HXHQHU5DUSMFXW74YXOVOXQ)
+2. [UML Diagram](docs/UMLDiagram.PNG)
 3. [How to run](docs/UserManual.md)
