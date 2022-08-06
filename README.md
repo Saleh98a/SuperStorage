@@ -104,7 +104,11 @@ optional arguments:
                         --sm optimized, optimized, 6, 9, 32 in this case 6, 9, 32 are the sector bounds
   ```
 
-`
+# Results
+
+If EXPORT was set to True (Recommended), results will be exported to simulation_results/[Time of simulation]/
+You will find graphs and a text file describing the results.
+Also, graphs will be opened after the end of simulation.
 
 ## Table of Contents
 1. [Super Storage](docs/SuperStorage.md)
