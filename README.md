@@ -20,20 +20,35 @@ In this project, we are simulating a storage environment while researching diffe
 
 use run_simulation.py in root directory to run simulations.
 
+
 usage: run_simulation.py [-h] [--ss_rows SS_ROWS]
+
                          [--ss_racks_per_row SS_RACKS_PER_ROW]
+                         
                          [--ss_shelves_per_rack SS_SHELVES_PER_RACK]
+                         
                          [--ss_shelf_size SS_SHELF_SIZE]
+                         
                          [--operations_num OPERATIONS_NUM]
+                         
                          [--insertion_headstart INSERTION_HEADSTART]
+                         
                          [--extraction_probability EXTRACTION_PROBABILITY]
+                         
                          [--exponential_scale EXPONENTIAL_SCALE]
+                         
                          [--packages_per_container PACKAGES_PER_CONTAINER]
+                         
                          [--products_per_order PRODUCTS_PER_ORDER]
+                         
                          [--insert_lambda_coeff INSERT_LAMBDA_COEFF]
+                         
                          [--extract_lambda_coeff EXTRACT_LAMBDA_COEFF]
+                         
                          [--sector_bounds SECTOR_BOUNDS] [--export EXPORT]
+                         
                          [--storage_managers STORAGE_MANAGERS [STORAGE_MANAGERS ...]]
+                         
                          
 
 Super Storage Simulator
@@ -83,10 +98,10 @@ optional arguments:
   --export EXPORT       Export results to files
   
   --storage_managers STORAGE_MANAGERS [STORAGE_MANAGERS ...], --sm STORAGE_MANAGERS [STORAGE_MANAGERS ...]
-                        Adds a Storage Manager to run: --sm insert_algo,
-                        extract_algo, ...sector_bounds? Examples: --sm
-                        knapsack, optimized --sm optimized, optimized, 6, 9,
-                        32 in the latter case 6, 9, 32 are the sector bounds
+                        Adds a Storage Manager to run: --sm insert_algo, extract_algo, ...sector_bounds?
+                        Examples: 
+                        --sm knapsack, optimized
+                        --sm optimized, optimized, 6, 9, 32 in this case 6, 9, 32 are the sector bounds
                         
 
 `
