@@ -20,6 +20,8 @@ In this project, we are simulating a storage environment while researching diffe
 
 use run_simulation.py in root directory to run simulations.
 
+you can run it with -h flag for help.
+
 ```
 usage: run_simulation.py [-h] [--ss_rows SS_ROWS]
 
@@ -114,3 +116,4 @@ Also, graphs will be opened after the end of simulation.
 
 ## Table of Contents
 1. [Super Storage](docs/SuperStorage.md)
+2. [UML Diagram](https://raw.githubusercontent.com/Saleh98a/SuperStorage/main/docs/UML%20Graph.png?token=GHSAT0AAAAAABXLE5S5HXHQHU5DUSMFXW74YXOVOXQ)
