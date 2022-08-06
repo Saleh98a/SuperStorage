@@ -8,11 +8,11 @@ In this project, we are simulating a storage environment while researching diffe
 
 Let’s describe the physical storage properties we are using for our simulations. 
 
-Our storage, Super Storage, is a rectangular space. It contains rows containing the same number of racks. 
+Our storage, Super Storage, is a **rectangular** space. It contains rows containing the same number of racks. 
 
-Each rack has the same number of shelves. 
+Each **rack** has the same number of **shelves** . 
 
-Spaces exist between rows and between columns alike; Our forklift can move across rows and columns alike. 
+**Spaces** exist between rows and between columns alike; Our **forklift** can **move** across rows and columns alike. 
 
 ### Illustration:
 <p align="center">
@@ -40,11 +40,11 @@ Its main function is to deal with insertion/extraction requests. It also saves n
 	
     An algorithm that partitions the storage to a number of sectors:
   
-    - **Priority Items **
+    - **Priority Items**
 
     - **Percentaged Sectors:** where we try to keep items' percentages in that area as of that in orders' distribution 
 
-    - **Free Area **
+    - **Free Area**
 
   We use knapsack algorithm in each layer (regarding items that go to it) to minimize fragmentation. Also, items that didn’t fit in their matching sector will be delegated to the next sector. 
 
@@ -56,7 +56,7 @@ Its main function is to deal with insertion/extraction requests. It also saves n
 
     Iterates positions by distance. Tries to extract order items from each position. 
 
-2. **Optimized Extraction Algorithm **
+2. **Optimized Extraction Algorithm**
 
     Iterates positions by distance without moving the forklift and saves positions where we need to extract from. After that we optimize a path starting and ending in our starting point while visiting all of these positions. 
 
