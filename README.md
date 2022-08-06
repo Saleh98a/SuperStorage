@@ -50,7 +50,7 @@ usage: run_simulation.py [-h] [--ss_rows SS_ROWS]
                          
 
 Super Storage Simulator
-
+`
 optional arguments:
   -h, --help            show this help message and exit
   --ss_rows SS_ROWS     Number of row in our SuperStorage
@@ -86,7 +86,7 @@ optional arguments:
                         Examples: 
                         --sm knapsack, optimized
                         --sm optimized, optimized, 6, 9, 32 in this case 6, 9, 32 are the sector bounds
-
+`
 
 ## Table of Contents
 1. [Super Storage](docs/SuperStorage.md)
