@@ -113,7 +113,6 @@ def draw_containers(products, containers_count, package_max_size, insertion_lamb
 
 
 def learn(products, total_orders, extraction_lambda, exponential_scale):
-    print("---------------Learning---------------")
     products_num = len(products)
 
     orders = draw_orders(products, total_orders, extraction_lambda, exponential_scale)
@@ -138,7 +137,6 @@ def learn(products, total_orders, extraction_lambda, exponential_scale):
         size_percentage = total_size_of_product[i] / total_size
         current_info = ProductInfo(frequency, size_percentage)
         products_info.append(current_info)
-    print("---------------Done learning---------------")
     return products_info
 
 

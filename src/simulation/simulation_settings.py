@@ -14,6 +14,16 @@ class InsertAlgorithm(Enum):
     KNAPSACK = 2
     OPTIMIZED = 3
 
+    @staticmethod
+    def from_string(str_val):
+        if str_val == "naive":
+            return InsertAlgorithm.NAIVE
+        if str_val == "knapsack":
+            return InsertAlgorithm.KNAPSACK
+        if str_val == "optimized":
+            return InsertAlgorithm.OPTIMIZED
+        raise Exception("Unknown insertion algorithm")
+
     def __str__(self):
         if self is InsertAlgorithm.NAIVE:
             return "Insert:Naive"
@@ -28,6 +38,14 @@ class InsertAlgorithm(Enum):
 class ExtractAlgorithm(Enum):
     NAIVE = 1
     OPTIMIZED = 2
+
+    @staticmethod
+    def from_string(str_val):
+        if str_val == "naive":
+            return ExtractAlgorithm.NAIVE
+        if str_val == "optimized":
+            return ExtractAlgorithm.OPTIMIZED
+        raise Exception("Unknown extraction algorithm")
 
     def __str__(self):
         if self is ExtractAlgorithm.NAIVE:

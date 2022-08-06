@@ -53,10 +53,10 @@ class StorageManager:
                                      self.storage.storage_settings.racks_per_row)
         self.products_info = self.settings.learned_info
         self.top_level_percentage = most_frequent_percentage(self.products_info)
-        if self.insert_algorithm == InsertAlgorithm.OPTIMIZED or self.extract_algorithm == ExtractAlgorithm.OPTIMIZED:
-            for i in range(len(self.products_info)):
-                if self.top_level_percentage[i] != 0:
-                    print("product number", i, "top level frequency=", self.top_level_percentage[i])
+        # if self.insert_algorithm == InsertAlgorithm.OPTIMIZED or self.extract_algorithm == ExtractAlgorithm.OPTIMIZED:
+        #     for i in range(len(self.products_info)):
+        #         if self.top_level_percentage[i] != 0:
+        #             print("product number", i, "top level frequency=", self.top_level_percentage[i])
         self.event_bus = EventBus()
         self.set_handlers()
 
