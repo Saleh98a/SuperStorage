@@ -184,3 +184,17 @@ we defined fragmentation as the percentage of unused space across all used shelv
  <img src="example1/Cost.png" width="325"> <img src="example1/Extraction Cost.png" width="325"> <img src="example1/Insertion Cost.png" width="325">
  <img src="example1/Fragmentation.png" width="400">
 </p>
+
+## CONCLUSIONS
+
+### Fragmentation
+As seen in Fragmentation graphs, Knapsack Algorithm as expected provided the best results among all insertion algorithms. We can also see that the Optimized Algorithm provided the highest fragmentation among all. This is caused by our selective sectors which worsens our ability to optimize unused spaces.
+
+### Costs and Activity Heatmaps
+Using the right parameters for **Optimized Algorithm**, we can utilize the information we have about ordering patterns to get better results. We set a sector for prioritized items (the ones that get ordered frequently) and put them close to our forklift’s starting point. This led to much lower costs, especially in the **long term**. Also, our second sector (**percentaged**) is being used frequently enough. This led to much **lower activity space**, which unexpectedly also led to **lower insertion costs**. We were initially expecting extraction costs to make up for the rise in insertion costs.
+
+Also, looking at the heatmaps of the **Knapsack Algorithm** and the** Naïve Algorithm** are somewhat similar. Hence their Extraction Cost Graphs look **identical**.
+
+Also, as expected, **Knapsack Algorithm** always outperformed the **Naïve Algorithm**. Which meant we only needed to compare our Optimized Algorithm with the Knapsack Algorithm.
+
+
