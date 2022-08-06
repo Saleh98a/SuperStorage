@@ -1,0 +1,59 @@
+storage_managers_settings: 
+Insert: Insert:Naive
+Extract: Extract:Optimized
+Sector Bounds: []
+
+Insert: Insert:Knapsack
+Extract: Extract:Optimized
+Sector Bounds: []
+
+Insert: Insert:Optimized
+Extract: Extract:Optimized
+Sector Bounds: [6, 15, 32]
+
+storage_settings: Storage Settings:
+     Rows: 20
+     Racks Per Row: 20
+     Shelves Per Rack: 10
+     Shelf Size: 200
+
+extraction_probability: 0.9
+operations_num: 1000
+packages_per_container: 30
+products_per_order: 10
+insertion_headstart: 15
+insert_lambda_coeff: 3
+extract_lambda_coeff: 2.5
+repetitions_num: 1
+export: True
+
+Storage Manager Settings:
+Insert: Insert:Naive
+Extract: Extract:Optimized
+Sector Bounds: []
+
+Fragmentation:9.76207694532832
+Cost: 138549.600000008
+Insertion Cost: 64073.699999997145
+Extraction Cost: 63867.89999999756
+
+Storage Manager Settings:
+Insert: Insert:Knapsack
+Extract: Extract:Optimized
+Sector Bounds: []
+
+Fragmentation:9.552768918527109
+Cost: 107614.00000000637
+Insertion Cost: 32932.79999999858
+Extraction Cost: 64005.99999999749
+
+Storage Manager Settings:
+Insert: Insert:Optimized
+Extract: Extract:Optimized
+Sector Bounds: [6, 15, 32]
+
+Fragmentation:10.768735697940503
+Cost: 81084.19999999917
+Insertion Cost: 27708.99999999885
+Extraction Cost: 47138.099999997634
+
