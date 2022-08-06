@@ -23,15 +23,26 @@ def simulation_script():
     parser.add_argument("--sector_bounds", help="Sector Bounds for Optimized Algorithm", required=False, default=[6, 9, 32])
     parser.add_argument("--export", help="Export results to files", required=False, default=True)
 
-    parser.add_argument("--storage_managers",
-                        help='Storage Managers to run:\nExample Value= [["knapsack", "optimized"], ["optimized", "optimized", [6, 9, 32]]]',
+    parser.add_argument("--storage_managers", "--sm",
+                        help="""Adds a Storage Manager to run: --sm insert_algo, extract_algo, ...sector_bounds?
+                                Examples: 
+                                --sm knapsack, optimized
+                                --sm optimized, optimized, 6, 9, 32
+                                in the latter case 6, 9, 32 are the sector bounds""",
+                        action="append",
+                        nargs='+',
                         required=False,
-                        default=[["naive", "optimized"], ["knapsack", "optimized"], ["optimized", "optimized", [6, 9, 32]]])
+                        default=None)
 
     args = parser.parse_args()
 
+    if args.storage_managers == None:
+        args.storage_managers = [["naive", "optimized"], ["knapsack", "optimized"], ["optimized", "optimized", 6, 9, 32]]
+
+    print(args.storage_managers)
+
     storage_managers = [
-        StorageManagerSettings(InsertAlgorithm.from_string(storage_manager[0]), ExtractAlgorithm.from_string(storage_manager[1]), sector_bounds=storage_manager[2] if 2 < len(storage_manager) else None)
+        StorageManagerSettings(InsertAlgorithm.from_string(storage_manager[0]), ExtractAlgorithm.from_string(storage_manager[1]), sector_bounds=list(map(int, storage_manager[2:])) if 2 < len(storage_manager) else None)
         for storage_manager in args.storage_managers
     ]
 
