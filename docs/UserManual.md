@@ -1,4 +1,4 @@
-# User Manual
+# How to run
 
 ### What you need:
   - Python interpreter.
