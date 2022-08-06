@@ -20,7 +20,7 @@ In this project, we are simulating a storage environment while researching diffe
 
 use run_simulation.py in root directory to run simulations.
 
-
+```
 usage: run_simulation.py [-h] [--ss_rows SS_ROWS]
 
                          [--ss_racks_per_row SS_RACKS_PER_ROW]
@@ -102,7 +102,7 @@ optional arguments:
                         Examples: 
                         --sm knapsack, optimized
                         --sm optimized, optimized, 6, 9, 32 in this case 6, 9, 32 are the sector bounds
-                        
+  ```
 
 `
 
