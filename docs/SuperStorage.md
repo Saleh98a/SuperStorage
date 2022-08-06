@@ -16,7 +16,7 @@ Spaces exist between rows and between columns alike; Our forklift can move acros
 
 ### Illustration:
 <p align="center">
-	<img src="docs/StorageStructure.PNG" width="700"/>
+	<img src="StorageStructure.PNG" width="700"/>
 </p>
 
 ## Storage Manager
@@ -121,3 +121,66 @@ $$ \lambda ={\\frac{n}{m}}∗ec $$
 | insert_lambda_coeff | Coefficient for the insertion Poisson parameter | 3  | 
 | extract_lambda_coeff | Coefficient for the extraction Poisson parameter | 2.5  | 
 | export | Export results to files | True  | 
+
+
+## Other Definitions
+
+### Position: 
+
+a position in the storage is defined as (row, col, shelf). 
+
+### Cost:
+
+The total cost of forklift movements inside the storage. Each move’s cost is defined as: 
+
+(hc <- horizontal coeff, vc <- vertical coeff, horizontal_coeff >> vertical_coeff)
+
+$$ Cost(A→B) = hc∗|A.row−B.row|+ vc∗|A.shelf−B.shelf| $$
+
+### Fragmentation:
+
+we defined fragmentation as the percentage of unused space across all used shelves.
+
+
+## TESTS AND RESULTS 
+
+### Simulation parameters: 
+
+- Storage managers tested: 
+
+  - Insert: Naïve, Extract: Optimized 
+
+  - Insert: Knapsack, Extract: Optimized 
+
+  - Insert: Optimized, Extract: Optimized, Sector Bounds: [6, 15, 32] 
+
+- Storage Settings: 
+
+  - Rows: 20 
+
+  - Racks Per Row: 20 
+
+  - Shelves Per Rack: 10 
+
+  - Shelf Size: 200 
+
+- Extraction Probability: 0.9 
+
+- Operations number: 1000 
+
+- Packages Per Container: 30 
+
+- Products Per Order: 10 
+
+- Insertion Head start: 15 
+
+- Insert Lambda Coefficient: 3 
+
+- Extract Lambda Coefficient: 2.5 
+
+### Results:
+<p align="center">
+ <img src="example1/heatmap1.png" width="325"> <img src="example1/heatmap2.png" width="325"> <img src="example1/heatmap3.png" width="325">
+ <img src="example1/Cost.png" width="325"> <img src="example1/Extraction Cost.png" width="325"> <img src="example1/Insertion Cost.png" width="325">
+ <img src="example1/Fragmentation.png" width="400">
+</p>
