@@ -21,7 +21,7 @@ def simulation_script():
     parser.add_argument("--insert_lambda_coeff", help="Coefficient for the insertion Poisson parameter", required=False, default=3)
     parser.add_argument("--extract_lambda_coeff", help="Coefficient for the extraction Poisson parameter", required=False, default=3)
     parser.add_argument("--sector_bounds", help="Sector Bounds for Optimized Algorithm", required=False, default=[6, 9, 32])
-    parser.add_argument("--export", help="Export results to files", required=False, default=True)
+    parser.add_argument("--export", help="Export results to files", required=False, default='true')
 
     parser.add_argument("--storage_managers", "--sm",
                         help="""Adds a Storage Manager to run: --sm insert_algo, extract_algo, ...sector_bounds?
@@ -50,20 +50,20 @@ def simulation_script():
         SimulationSettings(
             storage_managers_settings=storage_managers,
             storage_settings=StorageSettings(
-                rows=args.ss_rows,
-                racks_per_row=args.ss_racks_per_row,
-                shelves_per_rack=args.ss_shelves_per_rack,
-                shelf_size=args.ss_shelf_size),
-            operations_num=args.operations_num,
-            insertion_headstart=args.insertion_headstart,
-            exponential_scale=args.exponential_scale,
-            extraction_probability=args.extraction_probability,
-            packages_per_container=args.packages_per_container,
-            products_per_order=args.products_per_order,
-            insert_lambda_coeff=args.insert_lambda_coeff,
-            extract_lambda_coeff=args.extract_lambda_coeff,
+                rows=int(args.ss_rows),
+                racks_per_row=int(args.ss_racks_per_row),
+                shelves_per_rack=int(args.ss_shelves_per_rack),
+                shelf_size=int(args.ss_shelf_size)),
+            operations_num=int(args.operations_num),
+            insertion_headstart=int(args.insertion_headstart),
+            exponential_scale=float(args.exponential_scale),
+            extraction_probability=float(args.extraction_probability),
+            packages_per_container=int(args.packages_per_container),
+            products_per_order=int(args.products_per_order),
+            insert_lambda_coeff=float(args.insert_lambda_coeff),
+            extract_lambda_coeff=float(args.extract_lambda_coeff),
             repetitions_num=1,
-            export=args.export,
+            export=args.export.lower() == 'true' or args.export == '1',
         )
     )
     simulator.simulate()

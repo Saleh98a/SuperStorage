@@ -224,11 +224,9 @@ class Simulator:
             plt.show(block=False)
 
     def print_plots(self, repetition):
-        fig = plt.figure()
-        axs = []
         i = 1
         for graph_name in self.graphs:
-
+            fig, ax = plt.subplots()
             x_values = list(range(1, self.operations_num + 1))
 
             # plotting the points
