@@ -68,5 +68,7 @@ def simulation_script():
     )
     simulator.simulate()
 
+    input("press any key to exit")
+
 if __name__ == '__main__':
     simulation_script()
