@@ -1,7 +1,12 @@
 # How to run
 
 ### What you need:
-  - Python interpreter.
+  - Python 3.7
+  - matplotlib 3.4.2
+  - numpy 1.20.2
+  - pandas 1.2.4
+  - seaborn 0.11.2
+  - tqdm 4.63.0
 
 ## How to run:
 
