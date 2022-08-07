@@ -1,5 +1,11 @@
 class EventBus:
-
+    """
+    A simple event management class for Event Driven Patterns
+    Use EventBus.get_global_instance if you're intending to use a global event system
+    Otherwise, you can initiate an instance: event_bus = EventBus()
+    event_bus.subscribe('event_occurred', event_handler) # registers function:'event_handler' to event:'event_occurred'
+    event_bus.fire_event('event_occurred', arg0, arg1=val1) # fires an event called 'event_occurred'
+    """
     _instance = None
 
     def __init__(self) -> None:

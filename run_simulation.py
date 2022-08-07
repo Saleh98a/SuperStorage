@@ -39,8 +39,6 @@ def simulation_script():
     if args.storage_managers == None:
         args.storage_managers = [["naive", "optimized"], ["knapsack", "optimized"], ["optimized", "optimized", 6, 9, 32]]
 
-    print(args.storage_managers)
-
     storage_managers = [
         StorageManagerSettings(InsertAlgorithm.from_string(storage_manager[0]), ExtractAlgorithm.from_string(storage_manager[1]), sector_bounds=list(map(int, storage_manager[2:])) if 2 < len(storage_manager) else None)
         for storage_manager in args.storage_managers

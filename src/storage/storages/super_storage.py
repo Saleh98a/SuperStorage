@@ -1,7 +1,6 @@
 """
 Our Storage Implementation
 """
-from src.events.event_bus import EventBus
 from src.storage.storages.storage import Storage
 from src.storage.storages.storage_settings import StorageSettings
 from src.models.rack import Rack
